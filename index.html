@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>爸爸的生字課本 V6.0</title>
+    <title>爸爸的生字課本 V7.0</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <style>
         /* --- 全域設定 --- */
@@ -15,20 +15,19 @@
             overflow: hidden; user-select: none;
         }
 
-        /* --- 手機版選單按鈕 (漢堡) --- */
+        /* --- 手機版選單按鈕 --- */
         .menu-toggle-btn {
-            position: absolute; top: 15px; left: 15px;
-            z-index: 100;
+            position: absolute; top: 15px; left: 15px; z-index: 100;
             background-color: #2c3e50; color: white;
             border: none; border-radius: 5px;
             padding: 10px 15px; font-size: 20px;
-            cursor: pointer; display: none; /* 電腦版隱藏 */
+            cursor: pointer; display: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         /* --- 左側選單 (Sidebar) --- */
         .sidebar {
-            width: 240px; background-color: #2c3e50; color: white;
+            width: 260px; background-color: #2c3e50; color: white;
             display: flex; flex-direction: column;
             overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             z-index: 90; transition: transform 0.3s ease;
@@ -38,23 +37,49 @@
             background-color: #1a252f; text-align: center;
             font-family: "Microsoft JhengHei", sans-serif;
             border-bottom: 1px solid #34495e;
-            padding-top: 60px; /* 留空間給漢堡鈕 */
+            padding-top: 60px; /* 手機版留空給漢堡紐 */
+            flex-shrink: 0;
         }
-        /* 電腦版標題不用留空 */
         @media(min-width: 769px) { .sidebar-title { padding-top: 20px; } }
 
-        .lesson-btn {
-            padding: 15px 20px; border: none; background: none; color: #ecf0f1;
-            text-align: left; font-size: 18px; cursor: pointer;
-            border-bottom: 1px solid #34495e; font-family: "Microsoft JhengHei", sans-serif;
-        }
-        .lesson-btn.active { background-color: #3498db; font-weight: bold; }
+        /* 課程區塊 */
+        .lesson-group { border-bottom: 1px solid #34495e; }
         
-        /* 遮罩 (手機開選單時的背景暗掉) */
+        /* 課程標題按鈕 */
+        .lesson-header {
+            width: 100%; padding: 15px 20px; border: none; background: none;
+            color: #ecf0f1; text-align: left; font-size: 18px; cursor: pointer;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .lesson-header:hover { background-color: #34495e; }
+        .lesson-header.active { background-color: #3498db; font-weight: bold; }
+
+        /* 生字網格容器 (預設隱藏) */
+        .word-grid {
+            display: none; /* 點擊後才打開 */
+            grid-template-columns: repeat(4, 1fr); /* 一行4個字 */
+            gap: 8px; padding: 10px;
+            background-color: #233140; /* 比背景深一點 */
+        }
+        .word-grid.show { display: grid; }
+
+        /* 生字小按鈕 */
+        .sidebar-word-btn {
+            background-color: #34495e; color: #fff;
+            border: 1px solid #4a6278; border-radius: 5px;
+            padding: 8px 0; font-size: 16px; cursor: pointer;
+            text-align: center; font-family: "Microsoft JhengHei", sans-serif;
+        }
+        .sidebar-word-btn:hover { background-color: #1abc9c; }
+        .sidebar-word-btn.current {
+            background-color: #f1c40f; color: #2c3e50; font-weight: bold; border-color: #f39c12;
+        }
+
+        /* 遮罩 */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 80;
-            display: none;
+            background: rgba(0,0,0,0.5); z-index: 80; display: none;
         }
         .overlay.active { display: block; }
 
@@ -62,22 +87,19 @@
         .main-content {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            position: relative; background-color: #f4f7f6;
-            width: 100%; /* 確保手機版佔滿 */
+            position: relative; background-color: #f4f7f6; width: 100%;
         }
 
         .current-lesson-info {
             position: absolute; top: 20px;
             font-size: 24px; color: #555; font-weight: bold;
-            font-family: "Microsoft JhengHei", sans-serif;
-            z-index: 10;
+            font-family: "Microsoft JhengHei", sans-serif; z-index: 10;
             background-color: rgba(244, 247, 246, 0.9);
-            padding: 5px 20px; border-radius: 20px;
-            text-align: center;
-            max-width: 80%;
+            padding: 5px 20px; border-radius: 20px; text-align: center;
+            max-width: 80%; pointer-events: none;
         }
 
-        /* --- 導覽按鈕 --- */
+        /* 左右切換按鈕 (保留點擊功能) */
         .nav-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 60px; height: 60px;
@@ -90,27 +112,23 @@
         .prev-btn { left: 20px; }
         .next-btn { right: 20px; }
 
-        /* --- 字卡容器 --- */
+        /* 字卡容器 */
         .card-container {
-            background-color: #ffffff;
-            padding: 20px; /* 手機版縮小 padding */
-            border-radius: 20px;
+            background-color: #ffffff; padding: 20px; border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             display: flex; flex-direction: column; align-items: center;
-            max-width: 95%; /* 防止超出螢幕 */
+            max-width: 95%;
         }
 
         .character-wrapper {
-            display: flex; flex-direction: row;
-            align-items: center; justify-content: center;
-            margin-bottom: 15px; gap: 10px; /* 手機版縮小間距 */
+            display: flex; flex-direction: row; align-items: center;
+            justify-content: center; margin-bottom: 15px; gap: 10px;
         }
 
-        /* 國字框 (動態大小，由 JS 控制，這裡只設基礎) */
+        /* 國字框 */
         #character-target-div {
             border: 3px solid #333; background-color: #fffadd;
             border-radius: 8px; position: relative;
-            /* 寬高由 JS 設定 */
         }
         #character-target-div::before {
             content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
@@ -121,11 +139,10 @@
             background-color: #d47e7e; pointer-events: none;
         }
 
-        /* 注音系統 */
+        /* 注音 */
         .zhuyin-system {
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; font-weight: bold; color: #333;
-            /* 高度由 JS 設定 */
         }
         .zhuyin-light-tone { font-size: 30px; height: 30px; line-height: 30px; margin-bottom: -5px; visibility: hidden; }
         .zhuyin-body-row { display: flex; flex-direction: row; align-items: center; height: 100%; }
@@ -146,36 +163,27 @@
         
         .progress-indicator { margin-top: 10px; font-size: 14px; color: #999; }
 
-        /* --- 手機版 RWD 樣式 --- */
         @media (max-width: 768px) {
-            .menu-toggle-btn { display: block; } /* 顯示漢堡鈕 */
-            
-            .sidebar {
-                position: absolute; top: 0; left: 0; height: 100%;
-                transform: translateX(-100%); /* 預設隱藏在左邊 */
-            }
-            .sidebar.active { transform: translateX(0); } /* 打開時滑入 */
-
-            .nav-btn { display: none; } /* 手機版隱藏左右大箭頭，改用滑動 */
-            
+            .menu-toggle-btn { display: block; }
+            .sidebar { position: absolute; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .nav-btn { display: none; } /* 手機版連按鈕都隱藏，純靠選單 */
             .current-lesson-info { font-size: 18px; top: 15px; width: 60%; }
-            
-            /* 手機按鈕再小一點 */
             .btn { padding: 8px 15px; font-size: 16px; }
         }
     </style>
 </head>
 <body>
 
-    <button class="menu-toggle-btn" id="menu-toggle">☰ 選單</button>
+    <button class="menu-toggle-btn" id="menu-toggle">☰ 生字表</button>
     <div class="overlay" id="overlay"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-title">生字課本</div>
-    </div>
+        <div class="sidebar-title">寶貝的生字課本</div>
+        </div>
 
     <div class="main-content" id="main-area">
-        <div class="current-lesson-info" id="lesson-title">第一課：拍拍手</div>
+        <div class="current-lesson-info" id="lesson-title"></div>
 
         <button class="nav-btn prev-btn" id="btn-prev">❮</button>
         <button class="nav-btn next-btn" id="btn-next">❯</button>
@@ -198,7 +206,7 @@
                 <button id="quiz-button" class="btn btn-quiz">👆 寫寫看</button>
             </div>
             
-            <div class="progress-indicator" id="progress-text">1 / 10</div>
+            <div class="progress-indicator" id="progress-text"></div>
         </div>
     </div>
 
@@ -216,41 +224,93 @@
         let currentWordIdx = 0;
         let writer = null;
 
-        // --- 核心：計算適合的大小 (Responsive) ---
         function getResponsiveSize() {
             const width = window.innerWidth;
-            if (width < 400) return 260; // 手機版小尺寸
+            if (width < 400) return 260;
             if (width < 600) return 280;
-            return 320; // 電腦/閨蜜機標準尺寸
+            return 320;
         }
 
-        // --- 介面渲染 ---
+        // --- 全新目錄渲染邏輯 ---
         function renderSidebar() {
             const sidebar = document.getElementById('sidebar');
-            // 清空舊的按鈕（避免重複渲染）
-            sidebar.innerHTML = '<div class="sidebar-title">生字課本</div>';
-            
-            lessons.forEach((lesson, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'lesson-btn';
-                if(index === 0) btn.classList.add('active');
-                btn.innerText = lesson.title;
-                btn.onclick = () => {
-                    changeLesson(index);
-                    toggleMenu(); // 手機版點選後自動收起選單
+            const fragment = document.createDocumentFragment();
+
+            lessons.forEach((lesson, lIndex) => {
+                // 1. 課程群組容器
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'lesson-group';
+
+                // 2. 課程標題按鈕
+                const headerBtn = document.createElement('button');
+                headerBtn.className = 'lesson-header';
+                headerBtn.innerText = lesson.title.split(' ')[0] + ' ' + lesson.title.split(' ')[1]; // 簡單排版
+                headerBtn.onclick = () => {
+                    // 切換課程
+                    changeLesson(lIndex, 0); 
+                    // 在手機版如果點標題，也可以選擇是否要自動收起，這邊先不收，方便點字
                 };
-                sidebar.appendChild(btn);
+                
+                // 3. 生字網格 (Word Grid)
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'word-grid';
+                gridDiv.id = `grid-${lIndex}`;
+
+                // 4. 產生該課的所有生字按鈕
+                lesson.words.forEach((wordObj, wIndex) => {
+                    const wordBtn = document.createElement('button');
+                    wordBtn.className = 'sidebar-word-btn';
+                    wordBtn.innerText = wordObj.char;
+                    wordBtn.id = `btn-${lIndex}-${wIndex}`;
+                    wordBtn.onclick = (e) => {
+                        e.stopPropagation(); // 防止觸發header點擊
+                        changeLesson(lIndex, wIndex);
+                        toggleMenu(); // 手機版點了字就收起選單
+                    };
+                    gridDiv.appendChild(wordBtn);
+                });
+
+                groupDiv.appendChild(headerBtn);
+                groupDiv.appendChild(gridDiv);
+                fragment.appendChild(groupDiv);
             });
+
+            // 清除標題以外的舊內容
+            const title = sidebar.querySelector('.sidebar-title');
+            sidebar.innerHTML = '';
+            sidebar.appendChild(title);
+            sidebar.appendChild(fragment);
         }
 
-        function changeLesson(index) {
-            currentLessonIdx = index;
-            currentWordIdx = 0;
-            const btns = document.querySelectorAll('.lesson-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            btns[index].classList.add('active');
-            document.getElementById('lesson-title').innerText = lessons[index].title;
+        // 切換課程與生字
+        function changeLesson(lIndex, wIndex) {
+            currentLessonIdx = lIndex;
+            currentWordIdx = wIndex;
+
+            // 更新 Sidebar UI (展開對應的 Grid, Highlight 對應的字)
+            updateSidebarUI();
+
+            document.getElementById('lesson-title').innerText = lessons[lIndex].title;
             loadCharacter();
+        }
+
+        function updateSidebarUI() {
+            // 1. 處理標題 Highlight
+            document.querySelectorAll('.lesson-header').forEach((btn, idx) => {
+                if (idx === currentLessonIdx) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // 2. 處理 Grid 展開
+            document.querySelectorAll('.word-grid').forEach((grid, idx) => {
+                if (idx === currentLessonIdx) grid.classList.add('show');
+                else grid.classList.remove('show');
+            });
+
+            // 3. 處理生字 Highlight
+            document.querySelectorAll('.sidebar-word-btn').forEach(btn => btn.classList.remove('current'));
+            const activeBtn = document.getElementById(`btn-${currentLessonIdx}-${currentWordIdx}`);
+            if(activeBtn) activeBtn.classList.add('current');
         }
 
         function loadCharacter() {
@@ -258,25 +318,22 @@
             const word = lesson.words[currentWordIdx];
             document.getElementById('progress-text').innerText = `${currentWordIdx + 1} / ${lesson.words.length}`;
 
-            // 1. 取得當前螢幕適合的大小
             const boxSize = getResponsiveSize();
-
-            // 2. 設定注音框的高度跟隨字框
             document.getElementById('zhuyin-box').style.height = boxSize + 'px';
 
-            // 3. 重建 HanziWriter
             document.getElementById('character-target-div').innerHTML = '';
             writer = HanziWriter.create('character-target-div', word.char, {
-                width: boxSize, height: boxSize, // 動態設定大小
-                padding: boxSize * 0.08, // padding 也隨比例縮放
+                width: boxSize, height: boxSize, padding: boxSize * 0.08,
                 strokeColor: '#333333', radicalColor: '#e91e63',
                 showOutline: true, outlineColor: '#ddd',
                 strokeAnimationSpeed: 1, delayBetweenStrokes: 200,
-                highlightOnVariation: true, 
-                drawingWidth: boxSize * 0.1, // 筆觸粗細也隨比例
+                highlightOnVariation: true, drawingWidth: boxSize * 0.1,
             });
 
             renderZhuyinLayout(word.zhuyin);
+            
+            // 同步更新 Sidebar 高亮 (如果是用左右箭頭切換的話)
+            updateSidebarUI();
         }
 
         function renderZhuyinLayout(zhuyinStr) {
@@ -305,7 +362,6 @@
             symbolsDiv.innerHTML = symbols;
         }
 
-        // --- 選單控制 (手機版) ---
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
@@ -316,7 +372,6 @@
         document.getElementById('menu-toggle').onclick = toggleMenu;
         document.getElementById('overlay').onclick = toggleMenu;
 
-        // --- 互動功能 ---
         function speakWord() {
             if ('speechSynthesis' in window) {
                 const word = lessons[currentLessonIdx].words[currentWordIdx].char;
@@ -328,18 +383,16 @@
 
         function prevChar() {
             if (currentWordIdx > 0) {
-                currentWordIdx--;
-                loadCharacter();
+                changeLesson(currentLessonIdx, currentWordIdx - 1);
             }
         }
         function nextChar() {
             const lesson = lessons[currentLessonIdx];
             if (currentWordIdx < lesson.words.length - 1) {
-                currentWordIdx++;
-                loadCharacter();
+                changeLesson(currentLessonIdx, currentWordIdx + 1);
             } else {
                 if(currentLessonIdx < lessons.length - 1) {
-                    if(confirm("這課結束了，要進入下一課嗎？")) changeLesson(currentLessonIdx + 1);
+                    if(confirm("這課結束了，要進入下一課嗎？")) changeLesson(currentLessonIdx + 1, 0);
                 } else {
                     alert("太棒了！全部學完了！");
                 }
@@ -358,28 +411,18 @@
             writer.quiz({ onComplete: function() { speakWord(); setTimeout(() => alert('好棒！寫完了！🎉'), 300); }});
         };
 
-        // 觸控滑動
-        let touchStartX = 0;
-        const mainArea = document.getElementById('main-area');
-        mainArea.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-        mainArea.addEventListener('touchend', e => {
-            const touchEndX = e.changedTouches[0].screenX;
-            if (touchEndX < touchStartX - 50) nextChar();
-            if (touchEndX > touchStartX + 50) prevChar();
-        }, {passive: true});
-
-        // 監聽螢幕旋轉/縮放，重新調整大小
         window.addEventListener('resize', () => {
-             // 簡單防抖動
              clearTimeout(window.resizeTimer);
              window.resizeTimer = setTimeout(loadCharacter, 200);
         });
 
         window.onload = function() {
             renderSidebar();
-            loadCharacter();
+            // 預設展開第一課
+            changeLesson(0, 0);
         };
 
+        // 移除了所有的 Touch Swipe Event Listeners (不會再左右滑動切換了)
     </script>
 </body>
 </html>
