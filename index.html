@@ -3,214 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>爸爸的生字課本 V7.0</title>
+    <title>爸爸的生字課本 V16.0 (智慧混和版)</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <style>
-        /* --- 全域設定 --- */
-        body {
-            font-family: "BiauKai", "DFKai-SB", "KaiTi", "Microsoft JhengHei", serif;
-            background-color: #f4f7f6;
-            margin: 0; padding: 0;
-            display: flex; height: 100vh;
-            overflow: hidden; user-select: none;
-        }
-
-        /* --- 手機版選單按鈕 --- */
-        .menu-toggle-btn {
-            position: absolute; top: 15px; left: 15px; z-index: 100;
-            background-color: #2c3e50; color: white;
-            border: none; border-radius: 5px;
-            padding: 10px 15px; font-size: 20px;
-            cursor: pointer; display: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        /* --- 左側選單 (Sidebar) --- */
-        .sidebar {
-            width: 260px; background-color: #2c3e50; color: white;
-            display: flex; flex-direction: column;
-            overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            z-index: 90; transition: transform 0.3s ease;
-        }
-        .sidebar-title {
-            padding: 20px; font-size: 22px; font-weight: bold;
-            background-color: #1a252f; text-align: center;
-            font-family: "Microsoft JhengHei", sans-serif;
-            border-bottom: 1px solid #34495e;
-            padding-top: 60px; /* 手機版留空給漢堡紐 */
-            flex-shrink: 0;
-        }
+        body { font-family: "BiauKai", "DFKai-SB", "KaiTi", serif; background-color: #f4f7f6; margin: 0; display: flex; height: 100vh; overflow: hidden; user-select: none; }
+        #debug-console { position: fixed; bottom: 0; right: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: auto; z-index: 9999; pointer-events: none; border-top: 2px solid #0f0; }
+        .menu-toggle-btn { position: absolute; top: 15px; left: 15px; z-index: 100; background: #2c3e50; color: white; border: none; border-radius: 5px; padding: 10px 15px; font-size: 20px; cursor: pointer; display: none; }
+        .sidebar { width: 260px; background: #2c3e50; color: white; display: flex; flex-direction: column; overflow-y: auto; z-index: 90; transition: 0.3s; }
+        .sidebar-title { padding: 20px; font-size: 22px; font-weight: bold; background: #1a252f; text-align: center; padding-top: 60px; flex-shrink: 0; border-bottom: 1px solid #34495e;}
         @media(min-width: 769px) { .sidebar-title { padding-top: 20px; } }
-
-        /* 課程區塊 */
-        .lesson-group { border-bottom: 1px solid #34495e; }
-        
-        /* 課程標題按鈕 */
-        .lesson-header {
-            width: 100%; padding: 15px 20px; border: none; background: none;
-            color: #ecf0f1; text-align: left; font-size: 18px; cursor: pointer;
-            font-family: "Microsoft JhengHei", sans-serif;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .lesson-header:hover { background-color: #34495e; }
-        .lesson-header.active { background-color: #3498db; font-weight: bold; }
-
-        /* 生字網格容器 (預設隱藏) */
-        .word-grid {
-            display: none; /* 點擊後才打開 */
-            grid-template-columns: repeat(4, 1fr); /* 一行4個字 */
-            gap: 8px; padding: 10px;
-            background-color: #233140; /* 比背景深一點 */
-        }
+        .lesson-header { width: 100%; padding: 15px 20px; border: none; background: none; color: #ecf0f1; text-align: left; font-size: 18px; cursor: pointer; border-bottom: 1px solid #34495e; }
+        .word-grid { display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; background: #233140; }
         .word-grid.show { display: grid; }
-
-        /* 生字小按鈕 */
-        .sidebar-word-btn {
-            background-color: #34495e; color: #fff;
-            border: 1px solid #4a6278; border-radius: 5px;
-            padding: 8px 0; font-size: 16px; cursor: pointer;
-            text-align: center; font-family: "Microsoft JhengHei", sans-serif;
-        }
-        .sidebar-word-btn:hover { background-color: #1abc9c; }
-        .sidebar-word-btn.current {
-            background-color: #f1c40f; color: #2c3e50; font-weight: bold; border-color: #f39c12;
-        }
-
-        /* 遮罩 */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 80; display: none;
-        }
+        .sidebar-word-btn { background: #34495e; color: #fff; border: 1px solid #4a6278; border-radius: 5px; padding: 8px 0; cursor: pointer; }
+        .sidebar-word-btn.current { background: #f1c40f; color: #2c3e50; font-weight: bold; border-color: #f39c12; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 80; display: none; }
         .overlay.active { display: block; }
-
-        /* --- 右側主內容區 --- */
-        .main-content {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            position: relative; background-color: #f4f7f6; width: 100%;
-        }
-
-        .current-lesson-info {
-            position: absolute; top: 20px;
-            font-size: 24px; color: #555; font-weight: bold;
-            font-family: "Microsoft JhengHei", sans-serif; z-index: 10;
-            background-color: rgba(244, 247, 246, 0.9);
-            padding: 5px 20px; border-radius: 20px; text-align: center;
-            max-width: 80%; pointer-events: none;
-        }
-
-        /* 左右切換按鈕 (保留點擊功能) */
-        .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 60px; height: 60px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid #ddd; border-radius: 50%;
-            font-size: 30px; color: #555; cursor: pointer;
-            z-index: 15; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .prev-btn { left: 20px; }
-        .next-btn { right: 20px; }
-
-        /* 字卡容器 */
-        .card-container {
-            background-color: #ffffff; padding: 20px; border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; align-items: center;
-            max-width: 95%;
-        }
-
-        .character-wrapper {
-            display: flex; flex-direction: row; align-items: center;
-            justify-content: center; margin-bottom: 15px; gap: 10px;
-        }
-
-        /* 國字框 */
-        #character-target-div {
-            border: 3px solid #333; background-color: #fffadd;
-            border-radius: 8px; position: relative;
-        }
-        #character-target-div::before {
-            content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
-            background-color: #d47e7e; pointer-events: none;
-        }
-        #character-target-div::after {
-            content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 1px;
-            background-color: #d47e7e; pointer-events: none;
-        }
-
-        /* 注音 */
-        .zhuyin-system {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; font-weight: bold; color: #333;
-        }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding-bottom: 130px; }
+        .current-lesson-info { position: absolute; top: 20px; font-size: 24px; color: #555; font-weight: bold; background: rgba(244,247,246,0.9); padding: 5px 20px; border-radius: 20px; z-index: 10; }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px; background: rgba(255,255,255,0.8); border: 2px solid #ddd; border-radius: 50%; font-size: 30px; color: #555; cursor: pointer; z-index: 15; }
+        .prev-btn { left: 20px; } .next-btn { right: 20px; }
+        .card-container { background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; max-width: 95%; min-height: 400px; }
+        .character-wrapper { display: flex; margin-bottom: 15px; gap: 10px; }
+        #character-target-div { border: 3px solid #333; background: #fffadd; border-radius: 8px; position: relative; }
+        #character-target-div::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #d47e7e; pointer-events: none; }
+        #character-target-div::after { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background: #d47e7e; pointer-events: none; }
+        .zhuyin-system { display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #333; }
         .zhuyin-light-tone { font-size: 30px; height: 30px; line-height: 30px; margin-bottom: -5px; visibility: hidden; }
-        .zhuyin-body-row { display: flex; flex-direction: row; align-items: center; height: 100%; }
         .zhuyin-symbols { font-size: 40px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 10px; }
-        .zhuyin-side-tone { font-size: 35px; width: 25px; display: flex; justify-content: center; visibility: hidden; margin-left: 2px; }
-
-        /* 下方按鈕 */
+        .zhuyin-side-tone { font-size: 35px; width: 25px; display: flex; justify-content: center; }
         .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
-        .btn {
-            padding: 10px 20px; font-size: 18px; border: none; border-radius: 50px;
-            cursor: pointer; font-family: "Microsoft JhengHei", sans-serif; font-weight: bold;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-        }
-        .btn:active { transform: scale(0.95); }
-        .btn-speak { background-color: #FFB74D; color: white; }
-        .btn-animate { background-color: #4FC3F7; color: white; }
-        .btn-quiz { background-color: #66BB6A; color: white; }
-        
-        .progress-indicator { margin-top: 10px; font-size: 14px; color: #999; }
-
-        @media (max-width: 768px) {
-            .menu-toggle-btn { display: block; }
-            .sidebar { position: absolute; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
-            .sidebar.active { transform: translateX(0); }
-            .nav-btn { display: none; } /* 手機版連按鈕都隱藏，純靠選單 */
-            .current-lesson-info { font-size: 18px; top: 15px; width: 60%; }
-            .btn { padding: 8px 15px; font-size: 16px; }
-        }
+        .btn { padding: 10px 20px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
+        .btn-speak { background: #FFB74D; color: white; } .btn-animate { background: #4FC3F7; color: white; } .btn-quiz { background: #66BB6A; color: white; }
+        .error-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: red; font-weight: bold; font-size: 20px; background: rgba(255,255,255,0.9); padding: 10px; display: none; text-align: center;}
+        @media (max-width: 768px) { .menu-toggle-btn { display: block; } .sidebar { position: absolute; top: 0; left: 0; height: 100%; transform: translateX(-100%); } .sidebar.active { transform: translateX(0); } .nav-btn { display: none; } .current-lesson-info { font-size: 18px; top: 15px; width: 60%; } .btn { padding: 8px 15px; font-size: 16px; } }
     </style>
 </head>
 <body>
-
+    <div id="debug-console">V16.0 混和版啟動...<br></div>
     <button class="menu-toggle-btn" id="menu-toggle">☰ 生字表</button>
     <div class="overlay" id="overlay"></div>
-
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-title">寶貝的生字課本</div>
-        </div>
-
+    <div class="sidebar" id="sidebar"><div class="sidebar-title">寶貝的生字課本</div></div>
     <div class="main-content" id="main-area">
         <div class="current-lesson-info" id="lesson-title"></div>
-
         <button class="nav-btn prev-btn" id="btn-prev">❮</button>
         <button class="nav-btn next-btn" id="btn-next">❯</button>
-        
         <div class="card-container">
             <div class="character-wrapper">
-                <div id="character-target-div"></div>
+                <div id="character-target-div"><div id="error-msg" class="error-message">⚠️ 資料下載失敗</div></div>
                 <div class="zhuyin-system" id="zhuyin-box">
                     <div class="zhuyin-light-tone" id="tone-light">˙</div>
-                    <div class="zhuyin-body-row">
-                        <div class="zhuyin-symbols" id="zhuyin-symbols"></div>
-                        <div class="zhuyin-side-tone" id="tone-side"></div>
-                    </div>
+                    <div class="zhuyin-body-row"><div class="zhuyin-symbols" id="zhuyin-symbols"></div><div class="zhuyin-side-tone" id="tone-side"></div></div>
                 </div>
             </div>
-
             <div class="controls">
                 <button id="speak-button" class="btn btn-speak">🔊 唸唸看</button>
                 <button id="animate-button" class="btn btn-animate">▶️ 筆順</button>
                 <button id="quiz-button" class="btn btn-quiz">👆 寫寫看</button>
             </div>
-            
             <div class="progress-indicator" id="progress-text"></div>
         </div>
     </div>
 
     <script>
+        function debugLog(msg) {
+            const consoleDiv = document.getElementById('debug-console');
+            consoleDiv.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console.log(`[DEBUG] ${msg}`);
+        }
+
         const lessons = [
             { title: "第一課 拍拍手", words: [{char: "拍", zhuyin: "ㄆㄞ"}, {char: "手", zhuyin: "ㄕㄡˇ"}, {char: "左", zhuyin: "ㄗㄨㄛˇ"}, {char: "右", zhuyin: "ㄧㄡˋ"}, {char: "你", zhuyin: "ㄋㄧˇ"}, {char: "他", zhuyin: "ㄊㄚ"}, {char: "也", zhuyin: "ㄧㄝˇ"}, {char: "上", zhuyin: "ㄕㄤˋ"}, {char: "下", zhuyin: "ㄒㄧㄚˋ"}] },
             { title: "第二課 這是誰的?", words: [{char: "這", zhuyin: "ㄓㄜˋ"}, {char: "是", zhuyin: "ㄕˋ"}, {char: "誰", zhuyin: "ㄕㄟˊ"}, {char: "的", zhuyin: "˙ㄉㄜ"}, {char: "我", zhuyin: "ㄨㄛˇ"}, {char: "分", zhuyin: "ㄈㄣ"}, {char: "好", zhuyin: "ㄏㄠˇ"}, {char: "了", zhuyin: "˙ㄌㄜ"}, {char: "啊", zhuyin: "˙ㄚ"}, {char: "多", zhuyin: "ㄉㄨㄛ"}, {char: "個", zhuyin: "˙ㄍㄜ"}] },
@@ -226,88 +88,47 @@
 
         function getResponsiveSize() {
             const width = window.innerWidth;
-            if (width < 400) return 260;
-            if (width < 600) return 280;
-            return 320;
+            return width < 400 ? 260 : width < 600 ? 280 : 320;
         }
 
-        // --- 全新目錄渲染邏輯 ---
         function renderSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const fragment = document.createDocumentFragment();
-
+            sidebar.innerHTML = '<div class="sidebar-title">寶貝的生字課本</div>';
             lessons.forEach((lesson, lIndex) => {
-                // 1. 課程群組容器
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'lesson-group';
-
-                // 2. 課程標題按鈕
                 const headerBtn = document.createElement('button');
                 headerBtn.className = 'lesson-header';
-                headerBtn.innerText = lesson.title.split(' ')[0] + ' ' + lesson.title.split(' ')[1]; // 簡單排版
-                headerBtn.onclick = () => {
-                    // 切換課程
-                    changeLesson(lIndex, 0); 
-                    // 在手機版如果點標題，也可以選擇是否要自動收起，這邊先不收，方便點字
-                };
-                
-                // 3. 生字網格 (Word Grid)
+                headerBtn.innerText = lesson.title.split(' ')[0] + ' ' + lesson.title.split(' ')[1];
+                headerBtn.onclick = () => { changeLesson(lIndex, 0); };
                 const gridDiv = document.createElement('div');
                 gridDiv.className = 'word-grid';
                 gridDiv.id = `grid-${lIndex}`;
-
-                // 4. 產生該課的所有生字按鈕
                 lesson.words.forEach((wordObj, wIndex) => {
                     const wordBtn = document.createElement('button');
                     wordBtn.className = 'sidebar-word-btn';
                     wordBtn.innerText = wordObj.char;
                     wordBtn.id = `btn-${lIndex}-${wIndex}`;
-                    wordBtn.onclick = (e) => {
-                        e.stopPropagation(); // 防止觸發header點擊
-                        changeLesson(lIndex, wIndex);
-                        toggleMenu(); // 手機版點了字就收起選單
-                    };
+                    wordBtn.onclick = (e) => { e.stopPropagation(); changeLesson(lIndex, wIndex); toggleMenu(); };
                     gridDiv.appendChild(wordBtn);
                 });
-
                 groupDiv.appendChild(headerBtn);
                 groupDiv.appendChild(gridDiv);
-                fragment.appendChild(groupDiv);
+                sidebar.appendChild(groupDiv);
             });
-
-            // 清除標題以外的舊內容
-            const title = sidebar.querySelector('.sidebar-title');
-            sidebar.innerHTML = '';
-            sidebar.appendChild(title);
-            sidebar.appendChild(fragment);
         }
 
-        // 切換課程與生字
         function changeLesson(lIndex, wIndex) {
             currentLessonIdx = lIndex;
             currentWordIdx = wIndex;
-
-            // 更新 Sidebar UI (展開對應的 Grid, Highlight 對應的字)
             updateSidebarUI();
-
             document.getElementById('lesson-title').innerText = lessons[lIndex].title;
             loadCharacter();
         }
 
         function updateSidebarUI() {
-            // 1. 處理標題 Highlight
-            document.querySelectorAll('.lesson-header').forEach((btn, idx) => {
-                if (idx === currentLessonIdx) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-
-            // 2. 處理 Grid 展開
-            document.querySelectorAll('.word-grid').forEach((grid, idx) => {
-                if (idx === currentLessonIdx) grid.classList.add('show');
-                else grid.classList.remove('show');
-            });
-
-            // 3. 處理生字 Highlight
+            document.querySelectorAll('.lesson-header').forEach((btn, idx) => idx === currentLessonIdx ? btn.classList.add('active') : btn.classList.remove('active'));
+            document.querySelectorAll('.word-grid').forEach((grid, idx) => idx === currentLessonIdx ? grid.classList.add('show') : grid.classList.remove('show'));
             document.querySelectorAll('.sidebar-word-btn').forEach(btn => btn.classList.remove('current'));
             const activeBtn = document.getElementById(`btn-${currentLessonIdx}-${currentWordIdx}`);
             if(activeBtn) activeBtn.classList.add('current');
@@ -317,22 +138,56 @@
             const lesson = lessons[currentLessonIdx];
             const word = lesson.words[currentWordIdx];
             document.getElementById('progress-text').innerText = `${currentWordIdx + 1} / ${lesson.words.length}`;
-
             const boxSize = getResponsiveSize();
             document.getElementById('zhuyin-box').style.height = boxSize + 'px';
+            document.getElementById('character-target-div').innerHTML = '<div id="error-msg" class="error-message">⚠️ 資料下載失敗</div>';
+            document.getElementById('error-msg').style.display = 'none';
 
-            document.getElementById('character-target-div').innerHTML = '';
+            debugLog(`------------------`);
+            debugLog(`準備載入國字: [${word.char}]`);
+            
             writer = HanziWriter.create('character-target-div', word.char, {
                 width: boxSize, height: boxSize, padding: boxSize * 0.08,
                 strokeColor: '#333333', radicalColor: '#e91e63',
                 showOutline: true, outlineColor: '#ddd',
                 strokeAnimationSpeed: 1, delayBetweenStrokes: 200,
                 highlightOnVariation: true, drawingWidth: boxSize * 0.1,
+                
+                // --- V16.0 智慧混和模式 ---
+                charDataLoader: function(char, onComplete) {
+                    // 1. 優先嘗試本地 data/ (您手動上傳的繁體字)
+                    const localUrl = './data/' + char + '.json';
+                    
+                    debugLog(`1. 嘗試本地檔案: ${localUrl}`);
+                    fetch(localUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error("Local 404");
+                        return res.json();
+                    })
+                    .then(data => {
+                        debugLog(`✅ 使用本地繁體資料！`);
+                        onComplete(data);
+                    })
+                    .catch(err => {
+                        // 2. 本地沒有，嘗試官方 CDN (簡體/通用)
+                        debugLog(`⚠️ 本地無檔案，切換至官方 CDN...`);
+                        const cdnUrl = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + encodeURIComponent(char) + '.json';
+                        fetch(cdnUrl)
+                        .then(res => res.json())
+                        .then(data => {
+                            debugLog(`✅ 使用官方資料 (請檢查筆順)`);
+                            onComplete(data);
+                        })
+                        .catch(err2 => {
+                            debugLog(`❌ 全部失敗`);
+                            document.getElementById('error-msg').style.display = 'block';
+                            onComplete(null);
+                        });
+                    });
+                }
             });
 
             renderZhuyinLayout(word.zhuyin);
-            
-            // 同步更新 Sidebar 高亮 (如果是用左右箭頭切換的話)
             updateSidebarUI();
         }
 
@@ -340,12 +195,10 @@
             const lightToneDiv = document.getElementById('tone-light');
             const symbolsDiv = document.getElementById('zhuyin-symbols');
             const sideToneDiv = document.getElementById('tone-side');
-
             lightToneDiv.style.visibility = 'hidden';
             sideToneDiv.style.visibility = 'hidden';
             sideToneDiv.innerHTML = '';
             let symbols = '';
-            
             if (zhuyinStr.includes('˙')) {
                 lightToneDiv.style.visibility = 'visible';
                 symbols = zhuyinStr.replace('˙', '');
@@ -381,48 +234,17 @@
             }
         }
 
-        function prevChar() {
-            if (currentWordIdx > 0) {
-                changeLesson(currentLessonIdx, currentWordIdx - 1);
-            }
-        }
-        function nextChar() {
-            const lesson = lessons[currentLessonIdx];
-            if (currentWordIdx < lesson.words.length - 1) {
-                changeLesson(currentLessonIdx, currentWordIdx + 1);
-            } else {
-                if(currentLessonIdx < lessons.length - 1) {
-                    if(confirm("這課結束了，要進入下一課嗎？")) changeLesson(currentLessonIdx + 1, 0);
-                } else {
-                    alert("太棒了！全部學完了！");
-                }
-            }
-        }
-
-        document.getElementById('btn-prev').onclick = prevChar;
-        document.getElementById('btn-next').onclick = nextChar;
+        document.getElementById('btn-prev').onclick = () => { if(currentWordIdx > 0) changeLesson(currentLessonIdx, currentWordIdx - 1); };
+        document.getElementById('btn-next').onclick = () => { 
+            if(currentWordIdx < lessons[currentLessonIdx].words.length - 1) changeLesson(currentLessonIdx, currentWordIdx + 1);
+            else if(currentLessonIdx < lessons.length - 1 && confirm("進入下一課？")) changeLesson(currentLessonIdx + 1, 0);
+        };
         document.getElementById('speak-button').onclick = speakWord;
-        
-        document.getElementById('animate-button').onclick = function() {
-            speakWord(); writer.cancelQuiz(); writer.animateCharacter();
-        };
+        document.getElementById('animate-button').onclick = () => { speakWord(); writer.cancelQuiz(); writer.animateCharacter(); };
+        document.getElementById('quiz-button').onclick = () => { writer.quiz({ onComplete: () => { speakWord(); setTimeout(() => alert('好棒！寫完了！🎉'), 300); }}); };
 
-        document.getElementById('quiz-button').onclick = function() {
-            writer.quiz({ onComplete: function() { speakWord(); setTimeout(() => alert('好棒！寫完了！🎉'), 300); }});
-        };
-
-        window.addEventListener('resize', () => {
-             clearTimeout(window.resizeTimer);
-             window.resizeTimer = setTimeout(loadCharacter, 200);
-        });
-
-        window.onload = function() {
-            renderSidebar();
-            // 預設展開第一課
-            changeLesson(0, 0);
-        };
-
-        // 移除了所有的 Touch Swipe Event Listeners (不會再左右滑動切換了)
+        window.addEventListener('resize', () => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(loadCharacter, 200); });
+        window.onload = function() { renderSidebar(); changeLesson(0, 0); };
     </script>
 </body>
 </html>
