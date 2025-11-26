@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVGè½‰hanzi-writerå·¥å…· (540â†’900 ä¸Šä¸‹ç¿»è½‰)</title>
+    <title>SVGè½?hanzi-writerå·¥å?? (540???900 ä¸?ä¸?ç¿»è??)</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
@@ -108,26 +108,26 @@
 </head>
 <body>
     <div class="container">
-        <h1>? SVG â†’ hanzi-writer åº§æ¨™è½‰æ›å·¥å…·</h1>
+        <h1>? SVG ??? hanzi-writer åº§æ??è½????å·¥å??</h1>
         
         <div class="info-box">
-            <strong>? ä½¿ç”¨èªªæ˜ï¼š</strong>
+            <strong>? ä½¿ç?¨èªª???ï¼?</strong>
             <ul>
-                <li>æœ¬å·¥å…·å°‡ 540Ã—540 çš„ SVG åº§æ¨™è½‰æ›ç‚º hanzi-writer ä½¿ç”¨çš„ 900Ã—900 åº§æ¨™ç³»</li>
-                <li>è‡ªå‹•é€²è¡Œç¸®æ”¾ï¼ˆÃ—1.667ï¼‰å’Œä¸Šä¸‹ç¿»è½‰</li>
-                <li>æ”¯æ´å®Œæ•´çš„ JSON æ ¼å¼ï¼ˆåŒ…å« strokesã€mediansã€radStrokesï¼‰</li>
+                <li>??¬å·¥??·å?? 540??540 ??? SVG åº§æ??è½??????? hanzi-writer ä½¿ç?¨ç?? 900??900 åº§æ??ç³?</li>
+                <li>??ªå????²è??ç¸®æ?¾ï????1.667ï¼????ä¸?ä¸?ç¿»è??</li>
+                <li>??¯æ?´å????´ç?? JSON ??¼å??ï¼??????? strokes???medians???radStrokesï¼?</li>
             </ul>
         </div>
         
         <div class="formula">
-            <strong>è½‰æ›å…¬å¼ï¼š</strong><br>
-            newX = oldX Ã— 1.667 (å·¦å³ä¸è®Š)<br>
-            newY = 900 - (oldY Ã— 1.667) (ä¸Šä¸‹ç¿»è½‰)
+            <strong>è½??????¬å??ï¼?</strong><br>
+            newX = oldX ?? 1.667 (å·¦å?³ä??è®?)<br>
+            newY = 900 - (oldY ?? 1.667) (ä¸?ä¸?ç¿»è??)
         </div>
         
         <div class="section">
-            <label class="label">? è¼¸å…¥ï¼šåŸå§‹ JSON (540Ã—540 åº§æ¨™ç³»)</label>
-            <textarea id="input" placeholder='è²¼ä¸ŠåŸå§‹ JSONï¼Œä¾‹å¦‚ï¼š
+            <label class="label">? è¼¸å?¥ï?????å§? JSON (540??540 åº§æ??ç³?)</label>
+            <textarea id="input" placeholder='è²¼ä?????å§? JSONï¼?ä¾?å¦?ï¼?
 {
   "strokes": ["M 199 136 L 205 167 ..."],
   "medians": [[[193, 74], [170, 93], ...]],
@@ -136,61 +136,66 @@
         </div>
         
         <div class="btn-container">
-            <button onclick="convert()">? é–‹å§‹è½‰æ›</button>
+            <button onclick="convert()">? ???å§?è½????</button>
         </div>
         
         <div id="success-msg" class="success"></div>
         <div id="error-msg" class="error"></div>
         
         <div class="section">
-            <label class="label">? è¼¸å‡ºï¼šè½‰æ›å¾Œçš„ JSON (900Ã—900 åº§æ¨™ç³»)</label>
-            <textarea id="output" placeholder="è½‰æ›çµæœå°‡é¡¯ç¤ºåœ¨é€™è£¡..." readonly></textarea>
+            <label class="label">? è¼¸å?ºï??è½????å¾???? JSON (900??900 åº§æ??ç³?)</label>
+            <textarea id="output" placeholder="è½????çµ????å°?é¡¯ç¤º??¨é??è£?..." readonly></textarea>
         </div>
     </div>
     
     <script>
-        // è½‰æ›å–®å€‹åº§æ¨™é»
+        // è½??????®å??åº§æ??é»?
         function transformCoordinate(x, y) {
             const scale = 900 / 540;
-            const newX = x * scale;              // å·¦å³ä¸è®Š
-            const newY = 900 - (y * scale);      // ä¸Šä¸‹ç¿»è½‰
+            const newX = x * scale;              // å·¦å?³ä??è®?
+            const newY = 900 - (y * scale);      // ä¸?ä¸?ç¿»è??
             return [Math.round(newX), Math.round(newY)];
         }
         
-        // è½‰æ› SVG path å­—ç¬¦ä¸²
+        // è½???? SVG path å­?ç¬¦ä¸²
         function transformPath(path) {
-            return path.replace(/(-?\d+\.?\d*)\s+(-?\d+\.?\d*)/g, function(match, x, y) {
-                const [newX, newY] = transformCoordinate(parseFloat(x), parseFloat(y));
+            // ¥ı¥h±¼¤p??
+            const pathWithoutDecimals = path.replace(/(\d+)\.\d+/g, (match) => {
+                return Math.round(parseFloat(match)).toString();
+            });
+            // ¦A??®y?
+            return pathWithoutDecimals.replace(/(-?\d+)\s+(-?\d+)/g, function(match, x, y) {
+                const [newX, newY] = transformCoordinate(parseInt(x), parseInt(y));
                 return newX + ' ' + newY;
             });
         }
         
-        // ä¸»è½‰æ›å‡½æ•¸
+        // ä¸»è???????½æ??
         function convert() {
             const inputText = document.getElementById('input').value.trim();
             const successMsg = document.getElementById('success-msg');
             const errorMsg = document.getElementById('error-msg');
             
-            // éš±è—ä¹‹å‰çš„è¨Šæ¯
+            // ??±è??ä¹???????è¨????
             successMsg.style.display = 'none';
             errorMsg.style.display = 'none';
             
             if (!inputText) {
-                errorMsg.textContent = '? éŒ¯èª¤ï¼šè«‹å…ˆè¼¸å…¥ JSON æ•¸æ“š';
+                errorMsg.textContent = '? ??¯èª¤ï¼?è«????è¼¸å?? JSON ??¸æ??';
                 errorMsg.style.display = 'block';
                 return;
             }
             
             try {
-                // è§£æ JSON
+                // è§???? JSON
                 const data = JSON.parse(inputText);
                 
-                // è½‰æ› strokes
+                // è½???? strokes
                 if (data.strokes && Array.isArray(data.strokes)) {
                     data.strokes = data.strokes.map(stroke => transformPath(stroke));
                 }
                 
-                // è½‰æ› medians
+                // è½???? medians
                 if (data.medians && Array.isArray(data.medians)) {
                     data.medians = data.medians.map(median => 
                         median.map(point => {
@@ -202,32 +207,32 @@
                     );
                 }
                 
-                // ä¿ç•™å…¶ä»–å±¬æ€§ï¼ˆå¦‚ radStrokesï¼‰
+                // ä¿??????¶ä??å±¬æ?§ï??å¦? radStrokesï¼?
                 
-                // è¼¸å‡ºçµæœ
+                // è¼¸å?ºç?????
                 const output = JSON.stringify(data, null, 2);
                 document.getElementById('output').value = output;
                 
-                // é¡¯ç¤ºæˆåŠŸè¨Šæ¯
+                // é¡¯ç¤º??????è¨????
                 successMsg.innerHTML = 
-                    '? <strong>è½‰æ›æˆåŠŸï¼</strong><br>' +
-                    'å·²è™•ç† ' + (data.strokes ? data.strokes.length : 0) + ' å€‹ç­†åŠƒ<br>' +
-                    'å·²è½‰æ› ' + (data.medians ? data.medians.length : 0) + ' å€‹ median';
+                    '? <strong>è½??????????ï¼?</strong><br>' +
+                    'å·²è????? ' + (data.strokes ? data.strokes.length : 0) + ' ???ç­????<br>' +
+                    'å·²è????? ' + (data.medians ? data.medians.length : 0) + ' ??? median';
                 successMsg.style.display = 'block';
                 
-                // è‡ªå‹•æ»¾å‹•åˆ°çµæœ
+                // ??ªå??æ»¾å????°ç?????
                 document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 
             } catch (e) {
                 errorMsg.innerHTML = 
-                    '? <strong>è½‰æ›å¤±æ•—ï¼š</strong><br>' +
+                    '? <strong>è½????å¤±æ??ï¼?</strong><br>' +
                     e.message + '<br><br>' +
-                    'è«‹ç¢ºèªè¼¸å…¥çš„æ˜¯æœ‰æ•ˆçš„ JSON æ ¼å¼';
+                    'è«?ç¢ºè??è¼¸å?¥ç????¯æ???????? JSON ??¼å??';
                 errorMsg.style.display = 'block';
             }
         }
         
-        // æ”¯æ´éµç›¤å¿«æ·éµ
+        // ??¯æ?´é?µç?¤å¿«??·é??
         document.getElementById('input').addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 convert();

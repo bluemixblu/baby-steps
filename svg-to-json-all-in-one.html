@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG 轉 hanzi-writer JSON 一鍵整合工具</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            text-align: center;
+            font-size: 32px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .info-box strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .upload-area:hover {
+            background: #e8ebff;
+            border-color: #764ba2;
+            transform: translateY(-2px);
+        }
+        .upload-area input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-list {
+            margin: 20px 0;
+        }
+        .file-item {
+            background: #f8f9ff;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+        .file-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .file-status {
+            color: #28a745;
+            font-size: 14px;
+        }
+        .preview-area {
+            margin: 20px 0;
+        }
+        .preview-item {
+            background: #f8f9ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+        .preview-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .preview-item code {
+            background: white;
+            padding: 10px;
+            display: block;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: "Consolas", monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea#output {
+            min-height: 300px;
+            background: #f8f9ff;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            padding-left: 15px;
+            border-left: 5px solid #764ba2;
+        }
+        .label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .help-text {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+        .formula-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: "Consolas", monospace;
+            color: #856404;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>? SVG 轉 hanzi-writer JSON 整合工具</h1>
+        <div class="subtitle">一鍵整合：提取路徑、轉換座標、生成JSON</div>
+        
+        <div class="info-box">
+            <strong>? 一鍵完成功能：</strong>
+            <div style="margin-top: 10px; line-height: 1.8;">
+                ? 自動提取SVG path路徑<br>
+                ? 自動生成medians (筆畫骨架)<br>
+                ? 自動轉換座標 (540→540 到 900→900)<br>
+                ? 自動去除小數點 (符合hanzi-writer)<br>
+                ? 自動排序多檔案<br>
+                ? 一鍵複製完整JSON結果
+            </div>
+        </div>
+        
+        <div class="formula-box">
+            <strong>座標轉換公式：</strong><br>
+            newX = oldX × 1.667 (縮放比例)<br>
+            newY = 900 - (oldY × 1.667) (上下翻轉)
+        </div>
+        
+        <div class="section-title">? 步驟1：上傳SVG檔案</div>
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".svg" multiple>
+            <div style="font-size: 60px;">?</div>
+            <div style="font-size: 20px; margin: 15px 0; font-weight: bold;">拖曳或點擊上傳SVG檔案（支援多選）</div>
+            <div style="color: #666;">檔名請依筆劃順序命名（如：82b1_01.svg, 82b1_02.svg...）</div>
+        </div>
+        
+        <div id="fileList" class="file-list"></div>
+        <div id="previewArea" class="preview-area"></div>
+        
+        <div class="section-title">?? 步驟2：選填額外資訊（可選）</div>
+        
+        <div style="margin: 20px 0;">
+            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！工具會自動生成</span></label>
+            <div class="help-text">格式：[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...] - 每筆畫一個陣列</div>
+            <textarea id="mediansInput" placeholder='（可留空，工具會自動生成；或手動輸入更精確的medians）
+
+範例：
+[
+  [[193, 74], [170, 93], [166, 109], [195, 168]],
+  [[91, 143], [109, 147], [191, 128], [231, 120]]
+]
+
+提醒：
+1. 留空時：工具會從SVG path自動提取關鍵點生成medians
+2. 手動輸入：請輸入原始540×540座標，工具會自動轉換'></textarea>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <label class="label">RadStrokes（部首筆畫索引）：</label>
+            <div class="help-text">部首筆劃索引，範例：0,1,2,3 (表示前4筆是部首，如草字頭)</div>
+            <input type="text" id="radStrokesInput" placeholder="範例：0,1,2,3">
+        </div>
+        
+        <div class="btn-container">
+            <button onclick="generateJSON()">? 生成最終JSON</button>
+            <button onclick="clearAll()" class="secondary">?? 清除重來</button>
+        </div>
+        
+        <div id="successMsg" style="display: none;"></div>
+        
+        <div class="section-title">? 步驟3：複製完整JSON</div>
+        <div class="help-text" style="margin-bottom: 10px;">
+            將下方JSON檔存成 data/字.json，然後在 index.html 中就能使用台灣標準筆順！
+        </div>
+        <textarea id="output" placeholder="生成的JSON會顯示在這裡..." readonly></textarea>
+        
+        <div class="btn-container">
+            <button onclick="copyToClipboard()">? 複製到剪貼簿</button>
+        </div>
+    </div>
+
+    <script>
+        let svgFiles = [];
+        let extractedPaths = [];
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        // 拖曳功能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#e8ebff';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = '#f8f9ff';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '#f8f9ff';
+            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.svg'));
+            handleFiles(files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+        
+        function handleFiles(files) {
+            svgFiles = files.sort((a, b) => a.name.localeCompare(b.name));
+            displayFileList();
+            extractAllPaths();
+        }
+        
+        function displayFileList() {
+            const listDiv = document.getElementById('fileList');
+            listDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">已載入 ' + svgFiles.length + ' 個檔案：</div>';
+            
+            svgFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-name">${index + 1}. ${file.name}</span>
+                    <span class="file-status">? 準備完成</span>
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+        
+        function extractAllPaths() {
+            extractedPaths = [];
+            const promises = svgFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        const pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
+                        if (pathMatch && pathMatch[1]) {
+                            // 去掉小數點
+                            const pathWithoutDecimals = pathMatch[1].replace(/(\d+)\.\d+/g, (match) => {
+                                return Math.round(parseFloat(match)).toString();
+                            });
+                            resolve(pathWithoutDecimals);
+                        } else {
+                            resolve(null);
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            });
+            
+            Promise.all(promises).then(paths => {
+                extractedPaths = paths.filter(p => p !== null);
+                displayPreview();
+            });
+        }
+        
+        function displayPreview() {
+            const previewDiv = document.getElementById('previewArea');
+            previewDiv.innerHTML = '<div class="section-title">?? 已提取的Path預覽（540×540原始座標）：</div>';
+            
+            extractedPaths.forEach((path, index) => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                const preview = path.length > 100 ? path.substring(0, 100) + '...' : path;
+                item.innerHTML = `
+                    <strong>第 ${index + 1} 筆畫</strong>
+                    <code>${preview}</code>
+                `;
+                previewDiv.appendChild(item);
+            });
+        }
+        
+        // 座標轉換函數
+        function transformCoordinate(x, y) {
+            const scale = 900 / 540;
+            const newX = x * scale;
+            const newY = 900 - (y * scale);
+            return [Math.round(newX), Math.round(newY)];
+        }
+        
+        function transformPath(path) {
+            return path.replace(/(-?\d+)\s+(-?\d+)/g, function(match, x, y) {
+                const [newX, newY] = transformCoordinate(parseInt(x), parseInt(y));
+                return newX + ' ' + newY;
+            });
+        }
+        
+        // 自動生成median（從path提取關鍵點）
+        function extractMedianFromPath(path) {
+            const points = [];
+            const commands = path.match(/[MLQC]\s*(-?\d+)\s+(-?\d+)/g);
+            
+            if (!commands) return [[0, 0], [100, 100]]; // 預設值
+            
+            commands.forEach(cmd => {
+                const match = cmd.match(/(-?\d+)\s+(-?\d+)/);
+                if (match) {
+                    points.push([parseInt(match[1]), parseInt(match[2])]);
+                }
+            });
+            
+            // 簡化點數（取起點、中間點、終點）
+            if (points.length === 0) return [[0, 0], [100, 100]];
+            if (points.length === 1) return [points[0], points[0]];
+            if (points.length === 2) return points;
+            
+            // 取若干代表性的點
+            const simplified = [points[0]]; // 起點
+            const step = Math.floor(points.length / 4); // 取4-5個點
+            for (let i = step; i < points.length - 1; i += step) {
+                simplified.push(points[i]);
+            }
+            simplified.push(points[points.length - 1]); // 終點
+            
+            return simplified;
+        }
+        
+        function generateJSON() {
+            if (extractedPaths.length === 0) {
+                alert('請先上傳SVG檔案！');
+                return;
+            }
+            
+            // 轉換strokes
+            const transformedStrokes = extractedPaths.map(path => transformPath(path));
+            
+            const json = {
+                strokes: transformedStrokes
+            };
+            
+            // 處理medians
+            const mediansText = document.getElementById('mediansInput').value.trim();
+            if (mediansText) {
+                // 手動輸入的medians
+                try {
+                    const originalMedians = JSON.parse(mediansText);
+                    // 轉換medians座標
+                    json.medians = originalMedians.map(median => 
+                        median.map(point => {
+                            if (Array.isArray(point) && point.length >= 2) {
+                                return transformCoordinate(point[0], point[1]);
+                            }
+                            return point;
+                        })
+                    );
+                } catch (e) {
+                    alert('Medians格式錯誤，請檢查JSON格式！\n錯誤：' + e.message);
+                    return;
+                }
+            } else {
+                // 自動生成medians
+                json.medians = extractedPaths.map(path => {
+                    const originalMedian = extractMedianFromPath(path);
+                    return originalMedian.map(point => transformCoordinate(point[0], point[1]));
+                });
+            }
+            
+            // 處理radStrokes
+            const radStrokesText = document.getElementById('radStrokesInput').value.trim();
+            if (radStrokesText) {
+                json.radStrokes = radStrokesText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            }
+            
+            const output = JSON.stringify(json, null, 2);
+            document.getElementById('output').value = output;
+            
+            // 顯示成功訊息
+            const successMsg = document.getElementById('successMsg');
+            successMsg.className = 'success';
+            const hasManualMedians = mediansText !== '';
+            successMsg.innerHTML = `
+                <div style="font-size: 20px; margin-bottom: 10px;">? JSON生成成功！</div>
+                <div>筆畫數： ${extractedPaths.length} 劃</div>
+                <div>座標轉換：540×540 → 900×900</div>
+                <div>座標格式：已去小數點</div>
+                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '自動生成完成'}</div>
+                <div style="margin-top: 10px; font-size: 16px;">
+                    <strong>下一步操作：</strong>將下方JSON檔存成 data/字.json
+                </div>
+            `;
+            successMsg.style.display = 'block';
+        }
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.value) {
+                alert('尚未生成JSON，請先產生！');
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            alert('? 已複製到剪貼簿！');
+        }
+        
+        function clearAll() {
+            if (confirm('確定要清除所有資料嗎？')) {
+                svgFiles = [];
+                extractedPaths = [];
+                document.getElementById('fileList').innerHTML = '';
+                document.getElementById('previewArea').innerHTML = '';
+                document.getElementById('mediansInput').value = '';
+                document.getElementById('radStrokesInput').value = '';
+                document.getElementById('output').value = '';
+                document.getElementById('successMsg').style.display = 'none';
+                fileInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>

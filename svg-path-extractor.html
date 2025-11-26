@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Path ??¹é????????å·¥å??</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+        .upload-area:hover {
+            background: #e9ecef;
+            border-color: #2980b9;
+        }
+        .upload-area.dragover {
+            background: #cfe2ff;
+            border-color: #0d6efd;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-list {
+            margin: 20px 0;
+        }
+        .file-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .file-status {
+            color: #28a745;
+        }
+        .preview-area {
+            margin: 20px 0;
+        }
+        .stroke-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+            border-radius: 5px;
+        }
+        .stroke-number {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 18px;
+        }
+        .path-data {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+            margin-top: 5px;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 13px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button.secondary {
+            background: #95a5a6;
+        }
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .section-title {
+            color: #34495e;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+        }
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>? SVG Path ??¹é????????å·¥å??</h1>
+        
+        <div class="info-box">
+            <strong>? ä½¿ç?¨æ­¥é©?ï¼?</strong>
+            <ol style="margin: 10px 0; padding-left: 25px;">
+                <li>ä¸???³å?????SVG???ä»¶ï??å¦?ï¼?82b1_01.svg, 82b1_02.svg...ï¼?</li>
+                <li>å·¥å?·æ????ªå????????åº???????æ¯????path??¸æ??</li>
+                <li>ï¼???¯é?¸ï??è¼¸å?¥mediansåº§æ??</li>
+                <li>ï¼???¯é?¸ï??è¼¸å?¥radStrokesï¼?å¦?ï¼?0,1,2,3ï¼?</li>
+                <li>é»?????????????JSON???ï¼?è¤?è£½è¼¸???</li>
+                <li><strong>å°?è¼¸å?ºè²¼??? svg-to-hanzi-writer.html ??²è??åº§æ??è½????</strong></li>
+            </ol>
+        </div>
+        
+        <div class="section-title">? æ­¥é??1ï¼?ä¸???³SVG???ä»?</div>
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".svg" multiple>
+            <div style="font-size: 48px; color: #3498db;">?</div>
+            <div style="font-size: 18px; margin: 10px 0;">é»????????????¾SVG???ä»¶å?°é??è£?</div>
+            <div style="color: #666;">??¯æ?´å??æª?æ¡???????ä¸????</div>
+        </div>
+        
+        <div id="fileList" class="file-list"></div>
+        
+        <div id="previewArea" class="preview-area"></div>
+        
+        <div class="section-title">? æ­¥é??2ï¼?è¼¸å?¥é??å¤?è³?è¨?ï¼???¯é?¸ï??</div>
+        
+        <div style="margin: 20px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Mediansï¼??????«è·¯å¾?åº§æ??ï¼?ï¼?</label>
+            <div class="help-text">??¼å??ï¼?[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...]  - æ¯????ç­????ä¸??????????</div>
+            <textarea id="mediansInput" placeholder='ä¾?å¦?ï¼?
+[
+  [[193, 74], [170, 93], [166, 109], [195, 168]],
+  [[91, 143], [109, 147], [191, 128], [231, 120]]
+]'></textarea>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">RadStrokesï¼???¨é??ç­????ç´¢å??ï¼?ï¼?</label>
+            <div class="help-text">??¼å??ï¼???¨é????????????????¸å??ï¼?ä¾?å¦?ï¼?0,1,2,3ï¼?è¡¨ç¤º???4?????¯é?¨é??ï¼?</div>
+            <input type="text" id="radStrokesInput" placeholder="ä¾?å¦?ï¼?0,1,2,3" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+        </div>
+        
+        <div class="btn-container">
+            <button onclick="generateJSON()">? ??????JSON</button>
+            <button onclick="clearAll()" class="secondary">?? æ¸?ç©ºé??ä¾?</button>
+        </div>
+        
+        <div id="successMsg" style="display: none;"></div>
+        
+        <div class="section-title">? æ­¥é??3ï¼?è¤?è£½è¼¸??ºç??JSON</div>
+        <textarea id="output" placeholder="?????????JSONå°?é¡¯ç¤º??¨é??è£?..." readonly></textarea>
+        
+        <div class="btn-container">
+            <button onclick="copyToClipboard()">? è¤?è£½å?°å?ªè²¼ç°?</button>
+        </div>
+    </div>
+    
+    <script>
+        let svgFiles = [];
+        let extractedPaths = [];
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        // é»????ä¸????
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        // ???ä»¶é?¸æ??
+        fileInput.addEventListener('change', handleFiles);
+        
+        // ?????¾æ?¯æ??
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.svg'));
+            processFiles(files);
+        });
+        
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            processFiles(files);
+        }
+        
+        function processFiles(files) {
+            svgFiles = files.sort((a, b) => a.name.localeCompare(b.name));
+            displayFileList();
+            extractAllPaths();
+        }
+        
+        function displayFileList() {
+            const listDiv = document.getElementById('fileList');
+            listDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px;">å·²ä????? ' + svgFiles.length + ' ??????ä»¶ï??</div>';
+            
+            svgFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-name">${index + 1}. ${file.name}</span>
+                    <span class="file-status">? æº????å°±ç??</span>
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+        
+         function extractAllPaths() {
+             extractedPaths = [];
+             const promises = svgFiles.map(file => {
+                 return new Promise((resolve) => {
+                     const reader = new FileReader();
+                     reader.onload = (e) => {
+                         const content = e.target.result;
+                         const pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
+                         if (pathMatch && pathMatch[1]) {
+                             // ¥h±¼¤p??¡A?©Ò¦³?¦r???¾ã?
+                             const pathWithoutDecimals = pathMatch[1].replace(/(\d+)\.\d+/g, (match, integer) => {
+                                 return Math.round(parseFloat(match)).toString();
+                             });
+                             resolve(pathWithoutDecimals);
+                         } else {
+                             resolve(null);
+                         }
+                     };
+                     reader.readAsText(file);
+                 });
+             });
+             
+             Promise.all(promises).then(paths => {
+                 extractedPaths = paths.filter(p => p !== null);
+                 displayPreview();
+             });
+         }
+        
+        function displayPreview() {
+            const previewDiv = document.getElementById('previewArea');
+            previewDiv.innerHTML = '<div class="section-title">? ???è¦½æ????????Path??¸æ??</div>';
+            
+            extractedPaths.forEach((path, index) => {
+                const preview = document.createElement('div');
+                preview.className = 'stroke-preview';
+                preview.innerHTML = `
+                    <span class="stroke-number">ç­???? ${index + 1}:</span>
+                    <div class="path-data">${path.substring(0, 100)}${path.length > 100 ? '...' : ''}</div>
+                `;
+                previewDiv.appendChild(preview);
+            });
+        }
+        
+        function generateJSON() {
+            if (extractedPaths.length === 0) {
+                alert('è«????ä¸???³SVG???ä»¶ï??');
+                return;
+            }
+            
+            const json = {
+                strokes: extractedPaths
+            };
+            
+            // ??????medians
+            const mediansText = document.getElementById('mediansInput').value.trim();
+            if (mediansText) {
+                try {
+                    json.medians = JSON.parse(mediansText);
+                } catch (e) {
+                    alert('Medians??¼å????¯èª¤ï¼?è«?æª¢æ?¥JSON??¼å??ï¼?');
+                    return;
+                }
+            }
+            
+            // ??????radStrokes
+            const radStrokesText = document.getElementById('radStrokesInput').value.trim();
+            if (radStrokesText) {
+                json.radStrokes = radStrokesText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            }
+            
+            const output = JSON.stringify(json, null, 2);
+            document.getElementById('output').value = output;
+            
+            // é¡¯ç¤º??????è¨????
+            const successMsg = document.getElementById('successMsg');
+            successMsg.className = 'success';
+            successMsg.innerHTML = `
+                <strong>? JSON????????????ï¼?</strong><br>
+                å·²æ????? ${extractedPaths.length} ???ç­????<br>
+                <strong>ä¸?ä¸?æ­¥ï??</strong>å°?æ­¤JSONè¤?è£½å?? svg-to-hanzi-writer.html ??²è??åº§æ??è½????
+            `;
+            successMsg.style.display = 'block';
+            
+            // æ»¾å????°è¼¸??ºå?????
+            document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.value) {
+                alert('æ²??????¯è??è£½ç????§å®¹ï¼?');
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            alert('å·²è??è£½å?°å?ªè²¼ç°¿ï??');
+        }
+        
+        function clearAll() {
+            if (confirm('ç¢ºå??è¦?æ¸?ç©ºæ???????¸æ?????ï¼?')) {
+                svgFiles = [];
+                extractedPaths = [];
+                document.getElementById('fileList').innerHTML = '';
+                document.getElementById('previewArea').innerHTML = '';
+                document.getElementById('mediansInput').value = '';
+                document.getElementById('radStrokesInput').value = '';
+                document.getElementById('output').value = '';
+                document.getElementById('successMsg').style.display = 'none';
+                fileInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
+
