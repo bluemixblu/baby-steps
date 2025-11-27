@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG 轉 hanzi-writer JSON 工具 V3.2</title>
+    <title>SVG 轉 hanzi-writer JSON 工具 V3.5</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
@@ -250,33 +250,37 @@
 </head>
 <body>
     <div class="container">
-        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.2</h1>
-        <div class="subtitle">V3.2新增：自動移除Z命令，完美支援練習書寫模式！</div>
+        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.5</h1>
+        <div class="subtitle">V3.5新增：智能路徑簡化，自動去除回繞，保留主要書寫方向！</div>
         
         <div class="info-box">
-            <strong>? V3.2核心改進：</strong>
+            <strong>? V3.5核心改進：</strong>
             <div style="margin-top: 10px; line-height: 1.8;">
-                ? <strong>新增：自動移除Z命令（ClosePath）</strong><br>
-                ? 修復練習書寫模式 - Z命令會導致quiz模式無法識別<br>
-                ? 曲線動畫流暢 - 20個median點<br>
-                ? 正確處理Q/C命令 - 只取終點<br>
-                ? 自動分割累積型SVG<br>
-                ? 座標轉換 (540×540 → 900×900)
+                ? <strong>新增：智能路徑簡化算法</strong><br>
+                ? 自動檢測並移除回繞部分（如鉤、折的回程）<br>
+                ? 保持主要書寫方向的單調性<br>
+                ? 完美處理複雜筆畫（豎鉤、橫折等）<br>
+                ? 正確識別座標系（左上0,900）<br>
+                ? 移除Z命令，支援練習模式
             </div>
         </div>
         
         <div class="error-box">
-            <strong>?? V3.2修復的問題：</strong><br>
-            <strong>問題：</strong>含有Z命令的stroke在練習書寫時無法識別<br>
-            <strong>原因：</strong>hanzi-writer的quiz模式不支援閉合路徑（Z命令）<br>
-            <strong>解決：</strong>自動移除所有Z命令，改為開放路徑
+            <strong>?? V3.5解決的問題：</strong><br>
+            <strong>問題：</strong>複雜筆畫median包含回繞（Y: 673→598→790）<br>
+            <strong>原因：</strong>SVG路徑包含完整繪製軌跡，包括回程<br>
+            <strong>解決：</strong>智能過濾，只保留主要方向的點
         </div>
         
         <div class="formula-box">
-            <strong>?? V3.2技術說明：</strong><br>
-            1. 自動移除 "Z" 和 " Z" 命令<br>
-            2. Median點數：20個（曲線流暢）<br>
-            3. 完整支援練習書寫模式
+            <strong>?? V3.5簡化算法：</strong><br>
+            1. <strong>檢測主要方向：</strong>橫/豎/斜<br>
+            2. <strong>移除反向點：</strong><br>
+            　? 豎劃往下（Y增）：移除Y減少的點<br>
+            　? 豎劃往上（Y減）：移除Y增加的點<br>
+            　? 橫劃往右（X增）：移除X減少的點<br>
+            3. <strong>保留起點和終點</strong><br>
+            4. <strong>修正方向：</strong>確保符合書寫習慣
         </div>
         
         <div class="warning-box">
@@ -299,9 +303,9 @@
         <div class="section-title">?? 步驟2：選填額外資訊（可選）</div>
         
         <div style="margin: 20px 0;">
-            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.2會自動生成</span></label>
+            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.5會自動生成並簡化</span></label>
             <div class="help-text">格式：[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...] - 每筆畫一個陣列</div>
-            <textarea id="mediansInput" placeholder='（可留空，V3.2會自動生成密集版medians；或手動輸入更精確的medians）
+            <textarea id="mediansInput" placeholder='（可留空，V3.5會自動生成並智能簡化）
 
 範例：
 [
@@ -310,7 +314,7 @@
 ]
 
 提醒：
-1. 留空時：V3.2會自動生成20點密集median，曲線更流暢
+1. 留空時：V3.5會自動生成、簡化並修正方向
 2. 手動輸入：請輸入原始540×540座標，工具會自動轉換'></textarea>
         </div>
         
@@ -399,15 +403,12 @@
                         if (pathMatch && pathMatch[1]) {
                             let path = pathMatch[1];
                             
-                            // V3.2: 移除小數點
                             path = path.replace(/(\d+)\.\d+/g, (match) => {
                                 return Math.round(parseFloat(match)).toString();
                             });
                             
-                            // V3.2關鍵修復: 移除Z命令（ClosePath）以支援練習模式
-                            // Z命令會導致hanzi-writer的quiz模式無法識別
-                            path = path.replace(/\s*Z\s*$/gi, ''); // 移除結尾的Z
-                            path = path.replace(/\s+Z\s+/gi, ' '); // 移除中間的Z（如果有）
+                            path = path.replace(/\s*Z\s*$/gi, '');
+                            path = path.replace(/\s+Z\s+/gi, ' ');
                             
                             resolve(path.trim());
                         } else {
@@ -469,15 +470,14 @@
         
         function displayPreview() {
             const previewDiv = document.getElementById('previewArea');
-            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標，已移除Z命令）：</div>';
+            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標）：</div>';
             
             extractedPaths.forEach((path, index) => {
                 const item = document.createElement('div');
                 item.className = 'preview-item';
                 const preview = path.length > 150 ? path.substring(0, 150) + '...' : path;
-                const hasZ = path.includes('Z') || path.includes('z');
                 item.innerHTML = `
-                    <strong>第 ${index + 1} 筆畫 ${hasZ ? '<span style="color:red;">(?? 仍含Z命令)</span>' : '<span style="color:green;">(? 已移除Z)</span>'}</strong>
+                    <strong>第 ${index + 1} 筆畫</strong>
                     <code>${preview}</code>
                     <div class="length">完整長度：${path.length} 字符</div>
                 `;
@@ -499,7 +499,7 @@
             });
         }
         
-        // V3.2: 增加median密度到20點，讓曲線動畫更流暢
+        // V3.5核心：智能生成median、簡化路徑、修正方向
         function extractMedianFromPath(path) {
             const points = [];
             
@@ -518,48 +518,170 @@
                 
                 if (type === 'M' || type === 'L') {
                     points.push([parseInt(coords[0]), parseInt(coords[1])]);
-                    
                 } else if (type === 'Q') {
-                    // Q命令：只取終點
                     if (coords.length >= 4) {
-                        const endX = parseInt(coords[coords.length - 2]);
-                        const endY = parseInt(coords[coords.length - 1]);
-                        points.push([endX, endY]);
+                        points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
                     }
-                    
                 } else if (type === 'C') {
-                    // C命令：只取終點
                     if (coords.length >= 6) {
-                        const endX = parseInt(coords[coords.length - 2]);
-                        const endY = parseInt(coords[coords.length - 1]);
-                        points.push([endX, endY]);
+                        points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
                     }
                 }
-                // Z命令已被移除，不需要處理
             });
             
-            // 簡化點數
             if (points.length === 0) return [[0, 0], [100, 100]];
             if (points.length === 1) return [points[0], points[0]];
             if (points.length === 2) return points;
-            if (points.length <= 12) return points;
             
-            // V3.2: 20個median點
-            const simplified = [points[0]];
-            const maxPoints = 20;
-            const sampleCount = Math.min(points.length - 2, maxPoints - 2);
-            const step = (points.length - 1) / (sampleCount + 1);
+            // V3.5關鍵步驟1：路徑簡化（移除回繞）
+            let simplified = simplifyPath(points);
             
-            for (let i = 1; i <= sampleCount; i++) {
-                const index = Math.round(i * step);
-                if (index > 0 && index < points.length - 1) {
-                    simplified.push(points[index]);
+            // V3.5關鍵步驟2：採樣到合適的點數
+            simplified = samplePoints(simplified, 15); // 降到15點，更簡潔
+            
+            // V3.5關鍵步驟3：修正方向
+            simplified = correctMedianDirection(simplified);
+            
+            return simplified;
+        }
+        
+        // V3.5新增：路徑簡化算法 - 移除回繞部分
+        function simplifyPath(points) {
+            if (points.length <= 3) return points;
+            
+            const startPoint = points[0];
+            const endPoint = points[points.length - 1];
+            
+            const deltaX = Math.abs(endPoint[0] - startPoint[0]);
+            const deltaY = Math.abs(endPoint[1] - startPoint[1]);
+            
+            // 判斷主要方向
+            let mainDirection;
+            if (deltaX > deltaY * 1.5) {
+                mainDirection = 'horizontal';
+            } else if (deltaY > deltaX * 1.5) {
+                mainDirection = 'vertical';
+            } else {
+                mainDirection = 'diagonal';
+            }
+            
+            // 根據主要方向過濾點
+            const filtered = [points[0]]; // 起點
+            
+            if (mainDirection === 'vertical') {
+                // 豎劃：檢查Y值是否單調
+                const goingDown = endPoint[1] > startPoint[1]; // Y增 = 往下
+                
+                for (let i = 1; i < points.length - 1; i++) {
+                    const prevPoint = filtered[filtered.length - 1];
+                    const currPoint = points[i];
+                    
+                    if (goingDown) {
+                        // 主要往下：只保留Y值增加或相等的點
+                        if (currPoint[1] >= prevPoint[1]) {
+                            filtered.push(currPoint);
+                        }
+                    } else {
+                        // 主要往上：只保留Y值減少或相等的點
+                        if (currPoint[1] <= prevPoint[1]) {
+                            filtered.push(currPoint);
+                        }
+                    }
+                }
+            } else if (mainDirection === 'horizontal') {
+                // 橫劃：檢查X值是否單調
+                const goingRight = endPoint[0] > startPoint[0]; // X增 = 往右
+                
+                for (let i = 1; i < points.length - 1; i++) {
+                    const prevPoint = filtered[filtered.length - 1];
+                    const currPoint = points[i];
+                    
+                    if (goingRight) {
+                        // 主要往右：只保留X值增加或相等的點
+                        if (currPoint[0] >= prevPoint[0]) {
+                            filtered.push(currPoint);
+                        }
+                    } else {
+                        // 主要往左：只保留X值減少或相等的點
+                        if (currPoint[0] <= prevPoint[0]) {
+                            filtered.push(currPoint);
+                        }
+                    }
+                }
+            } else {
+                // 斜劃：保留所有點，但移除明顯的反向點
+                for (let i = 1; i < points.length - 1; i++) {
+                    const prevPoint = filtered[filtered.length - 1];
+                    const currPoint = points[i];
+                    
+                    // 計算"進度"（相對於起點到終點的方向）
+                    const progressPrev = (prevPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + 
+                                         (prevPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
+                    const progressCurr = (currPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + 
+                                         (currPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
+                    
+                    // 只保留進度不倒退的點
+                    if (progressCurr >= progressPrev * 0.95) { // 允許5%容差
+                        filtered.push(currPoint);
+                    }
                 }
             }
             
-            simplified.push(points[points.length - 1]);
+            // 確保終點保留
+            filtered.push(points[points.length - 1]);
             
-            return simplified;
+            return filtered.length >= 2 ? filtered : points;
+        }
+        
+        // V3.5新增：智能採樣到指定點數
+        function samplePoints(points, targetCount) {
+            if (points.length <= targetCount) return points;
+            
+            const sampled = [points[0]]; // 起點
+            const step = (points.length - 1) / (targetCount - 1);
+            
+            for (let i = 1; i < targetCount - 1; i++) {
+                const index = Math.round(i * step);
+                if (index > 0 && index < points.length - 1) {
+                    sampled.push(points[index]);
+                }
+            }
+            
+            sampled.push(points[points.length - 1]); // 終點
+            
+            return sampled;
+        }
+        
+        // V3.5：修正方向（基於V3.4）
+        function correctMedianDirection(median) {
+            if (median.length < 2) return median;
+            
+            const startPoint = median[0];
+            const endPoint = median[median.length - 1];
+            
+            const deltaX = Math.abs(endPoint[0] - startPoint[0]);
+            const deltaY = Math.abs(endPoint[1] - startPoint[1]);
+            
+            let shouldReverse = false;
+            
+            if (deltaX > deltaY * 1.5) {
+                // 橫劃
+                if (startPoint[0] > endPoint[0]) {
+                    shouldReverse = true;
+                }
+            } else if (deltaY > deltaX * 1.5) {
+                // 豎劃：Y值越大越上面
+                if (startPoint[1] < endPoint[1]) {
+                    shouldReverse = true;
+                }
+            } else {
+                // 斜劃
+                if (startPoint[1] < endPoint[1]) {
+                    shouldReverse = true;
+                }
+            }
+            
+            return shouldReverse ? median.slice().reverse() : median;
         }
         
         function generateRawJSON() {
@@ -581,7 +703,6 @@
                 <div style="font-size: 20px; margin-bottom: 10px;">? 原始Strokes JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標系統：540×540（原始未轉換）</div>
-                <div style="color:#ffd700;">?? Z命令已移除</div>
             `;
             successMsg.style.display = 'block';
         }
@@ -615,7 +736,7 @@
                     return;
                 }
             } else {
-                // V3.2自動生成medians（20點密集版）
+                // V3.5自動生成：簡化 + 修正方向
                 json.medians = extractedPaths.map(path => {
                     const originalMedian = extractMedianFromPath(path);
                     return originalMedian.map(point => transformCoordinate(point[0], point[1]));
@@ -637,9 +758,13 @@
                 <div style="font-size: 20px; margin-bottom: 10px;">? 完整JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標轉換：540×540 → 900×900</div>
-                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.2自動生成（20點密集版）</strong>'}</div>
+                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.5自動生成（智能簡化）</strong>'}</div>
                 <div style="margin-top: 10px; padding: 10px; background: rgba(255,215,0,0.3); border-radius: 5px; color:#000;">
-                    ? <strong>V3.2關鍵修復：</strong>已移除所有Z命令，練習書寫模式完美支援！
+                    ? <strong>V3.5關鍵功能：</strong><br>
+                    ? 移除回繞部分（Y: 598→790?）<br>
+                    ? 保持單調性（Y: 673→598?）<br>
+                    ? 完美處理複雜筆畫（鉤、折）<br>
+                    ? 練習書寫完全支援！
                 </div>
                 <div style="margin-top: 10px; font-size: 16px;">
                     <strong>下一步操作：</strong>將下方JSON檔存成 data/字.json
