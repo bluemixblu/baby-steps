@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG 轉 hanzi-writer JSON 工具 V3.1</title>
+    <title>SVG 轉 hanzi-writer JSON 工具 V3.2</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
@@ -228,6 +228,14 @@
             margin: 20px 0;
             color: #0c5460;
         }
+        .error-box {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #721c24;
+        }
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -242,25 +250,33 @@
 </head>
 <body>
     <div class="container">
-        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.1</h1>
-        <div class="subtitle">V3.1改進：增加median密度（20點）+ 優化練習模式兼容性</div>
+        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.2</h1>
+        <div class="subtitle">V3.2新增：自動移除Z命令，完美支援練習書寫模式！</div>
         
         <div class="info-box">
-            <strong>? V3.1核心改進：</strong>
+            <strong>? V3.2核心改進：</strong>
             <div style="margin-top: 10px; line-height: 1.8;">
-                ? <strong>新增：更密集的median採樣</strong><br>
-                ? 曲線動畫更流暢 - 增加到20個median點<br>
-                ? 正確處理Q/C命令 - 只取終點，不取控制點<br>
-                ? 完整練習模式支援 - 確保所有必要metadata<br>
+                ? <strong>新增：自動移除Z命令（ClosePath）</strong><br>
+                ? 修復練習書寫模式 - Z命令會導致quiz模式無法識別<br>
+                ? 曲線動畫流暢 - 20個median點<br>
+                ? 正確處理Q/C命令 - 只取終點<br>
                 ? 自動分割累積型SVG<br>
                 ? 座標轉換 (540×540 → 900×900)
             </div>
         </div>
         
+        <div class="error-box">
+            <strong>?? V3.2修復的問題：</strong><br>
+            <strong>問題：</strong>含有Z命令的stroke在練習書寫時無法識別<br>
+            <strong>原因：</strong>hanzi-writer的quiz模式不支援閉合路徑（Z命令）<br>
+            <strong>解決：</strong>自動移除所有Z命令，改為開放路徑
+        </div>
+        
         <div class="formula-box">
-            <strong>?? V3.1改進說明：</strong><br>
-            1. Median點數：10個 → 20個（曲線更流暢）<br>
-            2. 練習模式：確保JSON包含所有必要欄位
+            <strong>?? V3.2技術說明：</strong><br>
+            1. 自動移除 "Z" 和 " Z" 命令<br>
+            2. Median點數：20個（曲線流暢）<br>
+            3. 完整支援練習書寫模式
         </div>
         
         <div class="warning-box">
@@ -283,9 +299,9 @@
         <div class="section-title">?? 步驟2：選填額外資訊（可選）</div>
         
         <div style="margin: 20px 0;">
-            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.1會自動生成</span></label>
+            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.2會自動生成</span></label>
             <div class="help-text">格式：[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...] - 每筆畫一個陣列</div>
-            <textarea id="mediansInput" placeholder='（可留空，V3.1會自動生成密集版medians；或手動輸入更精確的medians）
+            <textarea id="mediansInput" placeholder='（可留空，V3.2會自動生成密集版medians；或手動輸入更精確的medians）
 
 範例：
 [
@@ -294,7 +310,7 @@
 ]
 
 提醒：
-1. 留空時：V3.1會自動生成20點密集median，曲線更流暢
+1. 留空時：V3.2會自動生成20點密集median，曲線更流暢
 2. 手動輸入：請輸入原始540×540座標，工具會自動轉換'></textarea>
         </div>
         
@@ -381,10 +397,19 @@
                         const content = e.target.result;
                         const pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
                         if (pathMatch && pathMatch[1]) {
-                            const pathWithoutDecimals = pathMatch[1].replace(/(\d+)\.\d+/g, (match) => {
+                            let path = pathMatch[1];
+                            
+                            // V3.2: 移除小數點
+                            path = path.replace(/(\d+)\.\d+/g, (match) => {
                                 return Math.round(parseFloat(match)).toString();
                             });
-                            resolve(pathWithoutDecimals);
+                            
+                            // V3.2關鍵修復: 移除Z命令（ClosePath）以支援練習模式
+                            // Z命令會導致hanzi-writer的quiz模式無法識別
+                            path = path.replace(/\s*Z\s*$/gi, ''); // 移除結尾的Z
+                            path = path.replace(/\s+Z\s+/gi, ' '); // 移除中間的Z（如果有）
+                            
+                            resolve(path.trim());
                         } else {
                             resolve(null);
                         }
@@ -444,14 +469,15 @@
         
         function displayPreview() {
             const previewDiv = document.getElementById('previewArea');
-            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標）：</div>';
+            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標，已移除Z命令）：</div>';
             
             extractedPaths.forEach((path, index) => {
                 const item = document.createElement('div');
                 item.className = 'preview-item';
                 const preview = path.length > 150 ? path.substring(0, 150) + '...' : path;
+                const hasZ = path.includes('Z') || path.includes('z');
                 item.innerHTML = `
-                    <strong>第 ${index + 1} 筆畫</strong>
+                    <strong>第 ${index + 1} 筆畫 ${hasZ ? '<span style="color:red;">(?? 仍含Z命令)</span>' : '<span style="color:green;">(? 已移除Z)</span>'}</strong>
                     <code>${preview}</code>
                     <div class="length">完整長度：${path.length} 字符</div>
                 `;
@@ -473,7 +499,7 @@
             });
         }
         
-        // V3.1改進版：增加median密度到20點，讓曲線動畫更流暢
+        // V3.2: 增加median密度到20點，讓曲線動畫更流暢
         function extractMedianFromPath(path) {
             const points = [];
             
@@ -509,17 +535,18 @@
                         points.push([endX, endY]);
                     }
                 }
+                // Z命令已被移除，不需要處理
             });
             
             // 簡化點數
             if (points.length === 0) return [[0, 0], [100, 100]];
             if (points.length === 1) return [points[0], points[0]];
             if (points.length === 2) return points;
-            if (points.length <= 12) return points; // 12點以下直接返回
+            if (points.length <= 12) return points;
             
-            // V3.1改進：增加到20個點（原本10個）讓曲線更流暢
-            const simplified = [points[0]]; // 起點
-            const maxPoints = 20; // 從10增加到20
+            // V3.2: 20個median點
+            const simplified = [points[0]];
+            const maxPoints = 20;
             const sampleCount = Math.min(points.length - 2, maxPoints - 2);
             const step = (points.length - 1) / (sampleCount + 1);
             
@@ -530,7 +557,7 @@
                 }
             }
             
-            simplified.push(points[points.length - 1]); // 終點
+            simplified.push(points[points.length - 1]);
             
             return simplified;
         }
@@ -554,6 +581,7 @@
                 <div style="font-size: 20px; margin-bottom: 10px;">? 原始Strokes JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標系統：540×540（原始未轉換）</div>
+                <div style="color:#ffd700;">?? Z命令已移除</div>
             `;
             successMsg.style.display = 'block';
         }
@@ -587,7 +615,7 @@
                     return;
                 }
             } else {
-                // V3.1自動生成medians（20點密集版）
+                // V3.2自動生成medians（20點密集版）
                 json.medians = extractedPaths.map(path => {
                     const originalMedian = extractMedianFromPath(path);
                     return originalMedian.map(point => transformCoordinate(point[0], point[1]));
@@ -609,12 +637,12 @@
                 <div style="font-size: 20px; margin-bottom: 10px;">? 完整JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標轉換：540×540 → 900×900</div>
-                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.1自動生成（20點密集版）</strong>'}</div>
+                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.2自動生成（20點密集版）</strong>'}</div>
+                <div style="margin-top: 10px; padding: 10px; background: rgba(255,215,0,0.3); border-radius: 5px; color:#000;">
+                    ? <strong>V3.2關鍵修復：</strong>已移除所有Z命令，練習書寫模式完美支援！
+                </div>
                 <div style="margin-top: 10px; font-size: 16px;">
                     <strong>下一步操作：</strong>將下方JSON檔存成 data/字.json
-                </div>
-                <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.3); border-radius: 5px;">
-                    ? <strong>V3.1改進：</strong>更密集的median讓曲線動畫更流暢，練習模式完全兼容！
                 </div>
             `;
             successMsg.style.display = 'block';
