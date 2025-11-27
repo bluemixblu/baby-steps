@@ -210,6 +210,14 @@
             font-family: "Consolas", monospace;
             color: #856404;
         }
+        .warning-box {
+            background: #d1ecf1;
+            border: 2px solid #0c5460;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #0c5460;
+        }
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -232,9 +240,10 @@
             <div style="margin-top: 10px; line-height: 1.8;">
                 ? 自動提取SVG path路徑<br>
                 ? 自動生成medians (筆畫骨架)<br>
-                ? 自動轉換座標 (540→540 到 900→900)<br>
+                ? 自動轉換座標 (540×540 到 900×900)<br>
                 ? 自動去除小數點 (符合hanzi-writer)<br>
                 ? 自動排序多檔案<br>
+                ? <strong>智能處理累積型SVG</strong> (自動分離每一筆劃) ?<br>
                 ? 一鍵複製完整JSON結果
             </div>
         </div>
@@ -243,6 +252,13 @@
             <strong>座標轉換公式：</strong><br>
             newX = oldX × 1.667 (縮放比例)<br>
             newY = 900 - (oldY × 1.667) (上下翻轉)
+        </div>
+        
+        <div class="warning-box">
+            <strong>? 支援兩種SVG格式：</strong><br>
+            1. <strong>獨立型SVG：</strong>每個檔案只包含一筆劃<br>
+            2. <strong>累積型SVG：</strong>第N個檔案包含前N筆 (如：82b1_01.svg=第1筆，82b1_02.svg=第1+2筆)<br>
+            ?? 工具會自動檢測並正確提取每個新增筆畫！
         </div>
         
         <div class="section-title">? 步驟1：上傳SVG檔案</div>
@@ -371,14 +387,52 @@
             });
             
             Promise.all(promises).then(paths => {
-                extractedPaths = paths.filter(p => p !== null);
+                const allPaths = paths.filter(p => p !== null);
+                // 智能提取：自動處理累積型SVG
+                extractedPaths = extractIndividualStrokes(allPaths);
                 displayPreview();
             });
         }
         
+        // 智能分割累積SVG：自動提取每個檔案新增的筆畫
+        function extractIndividualStrokes(allPaths) {
+            if (allPaths.length === 0) return [];
+            if (allPaths.length === 1) return allPaths;
+            
+            // 檢測是否為累積型SVG
+            const path1Sample = allPaths[0].substring(0, Math.min(150, allPaths[0].length));
+            const isCumulative = allPaths.length >= 2 && allPaths[1].includes(path1Sample.substring(0, 80));
+            
+            if (!isCumulative) {
+                // 獨立型SVG：直接返回
+                return allPaths;
+            }
+            
+            // 累積型SVG：提取每個新增的筆畫
+            const strokes = [];
+            for (let i = 0; i < allPaths.length; i++) {
+                const currentPath = allPaths[i];
+                
+                // 按照 " M " 分割（注意前後有空格，用正則避免誤判）
+                const parts = currentPath.split(/ M (?=[0-9])/);
+                
+                // 取最後一個部分（新增的筆畫）
+                let newStroke = parts[parts.length - 1];
+                
+                // 補上開頭的 M
+                if (!newStroke.startsWith('M')) {
+                    newStroke = 'M ' + newStroke;
+                }
+                
+                strokes.push(newStroke);
+            }
+            
+            return strokes;
+        }
+        
         function displayPreview() {
             const previewDiv = document.getElementById('previewArea');
-            previewDiv.innerHTML = '<div class="section-title">?? 已提取的Path預覽（540×540原始座標）：</div>';
+            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標）：</div>';
             
             extractedPaths.forEach((path, index) => {
                 const item = document.createElement('div');
