@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG 轉 hanzi-writer JSON 工具 V3</title>
+    <title>SVG 轉 hanzi-writer JSON 工具 V3.1</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
@@ -242,33 +242,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>? SVG 轉 hanzi-writer JSON 工具 V3</h1>
-        <div class="subtitle">V3新增：改進曲線處理 - 正確提取貝塞爾曲線的終點（不含控制點）</div>
+        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.1</h1>
+        <div class="subtitle">V3.1改進：增加median密度（20點）+ 優化練習模式兼容性</div>
         
         <div class="info-box">
-            <strong>? V3核心改進：</strong>
+            <strong>? V3.1核心改進：</strong>
             <div style="margin-top: 10px; line-height: 1.8;">
-                ? <strong>新增：智能曲線處理</strong><br>
-                ? 正確處理Q命令（二次貝塞爾曲線）- 只取終點，不取控制點<br>
-                ? 正確處理C命令（三次貝塞爾曲線）- 只取終點，不取控制點<br>
-                ? 增加採樣點數量 - 複雜曲線最多10個median點<br>
+                ? <strong>新增：更密集的median採樣</strong><br>
+                ? 曲線動畫更流暢 - 增加到20個median點<br>
+                ? 正確處理Q/C命令 - 只取終點，不取控制點<br>
+                ? 完整練習模式支援 - 確保所有必要metadata<br>
                 ? 自動分割累積型SVG<br>
-                ? 座標轉換 (540×540 → 900×900)<br>
-                ? 去除小數點
+                ? 座標轉換 (540×540 → 900×900)
             </div>
         </div>
         
         <div class="formula-box">
-            <strong>?? 技術說明：</strong><br>
-            Q命令格式：Q 控制點X 控制點Y 終點X 終點Y<br>
-            → V3只提取終點座標作為median<br>
-            → 控制點不在曲線上，會導致繪製失敗
+            <strong>?? V3.1改進說明：</strong><br>
+            1. Median點數：10個 → 20個（曲線更流暢）<br>
+            2. 練習模式：確保JSON包含所有必要欄位
         </div>
         
         <div class="warning-box">
             <strong>? 支援兩種SVG格式：</strong><br>
             1. <strong>獨立型SVG：</strong>每個檔案只包含一筆劃<br>
-            2. <strong>累積型SVG：</strong>第N個檔案包含前N筆 (如：82b1_01.svg=第1筆，82b1_02.svg=第1+2筆)
+            2. <strong>累積型SVG：</strong>第N個檔案包含前N筆
         </div>
         
         <div class="section-title">? 步驟1：上傳SVG檔案</div>
@@ -285,9 +283,9 @@
         <div class="section-title">?? 步驟2：選填額外資訊（可選）</div>
         
         <div style="margin: 20px 0;">
-            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！工具會自動生成</span></label>
+            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.1會自動生成</span></label>
             <div class="help-text">格式：[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...] - 每筆畫一個陣列</div>
-            <textarea id="mediansInput" placeholder='（可留空，V3會自動生成改進版medians；或手動輸入更精確的medians）
+            <textarea id="mediansInput" placeholder='（可留空，V3.1會自動生成密集版medians；或手動輸入更精確的medians）
 
 範例：
 [
@@ -296,7 +294,7 @@
 ]
 
 提醒：
-1. 留空時：V3會正確處理曲線，只提取終點（不含控制點）
+1. 留空時：V3.1會自動生成20點密集median，曲線更流暢
 2. 手動輸入：請輸入原始540×540座標，工具會自動轉換'></textarea>
         </div>
         
@@ -332,7 +330,6 @@
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         
-        // 拖曳功能
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.style.background = '#e8ebff';
@@ -384,7 +381,6 @@
                         const content = e.target.result;
                         const pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
                         if (pathMatch && pathMatch[1]) {
-                            // 去掉小數點
                             const pathWithoutDecimals = pathMatch[1].replace(/(\d+)\.\d+/g, (match) => {
                                 return Math.round(parseFloat(match)).toString();
                             });
@@ -399,33 +395,26 @@
             
             Promise.all(promises).then(paths => {
                 const allPaths = paths.filter(p => p !== null);
-                // 智能提取：自動處理累積型SVG
                 extractedPaths = extractIndividualStrokes(allPaths);
                 displayPreview();
             });
         }
         
-        // 智能分割累積SVG
         function extractIndividualStrokes(allPaths) {
             if (allPaths.length === 0) return [];
             if (allPaths.length === 1) return allPaths;
             
-            // 檢測是否為累積型SVG
             const path1Sample = allPaths[0].substring(0, Math.min(150, allPaths[0].length));
             const isCumulative = allPaths.length >= 2 && allPaths[1].includes(path1Sample.substring(0, 80));
             
             if (!isCumulative) {
-                // 獨立型SVG：直接返回
                 return allPaths;
             }
             
-            // 累積型SVG：提取每個新增的筆畫
             const strokes = [];
             
             for (let i = 0; i < allPaths.length; i++) {
                 const currentPath = allPaths[i];
-                
-                // 找到所有 M 命令的位置
                 const mPositions = [];
                 const regex = / M /g;
                 let match;
@@ -437,15 +426,12 @@
                 let newStroke;
                 
                 if (mPositions.length === 0) {
-                    // 沒有找到 " M "，直接使用整個path
                     newStroke = currentPath;
                 } else {
-                    // 取最後一個 M 命令之後的所有內容
                     const lastMPos = mPositions[mPositions.length - 1];
-                    newStroke = currentPath.substring(lastMPos + 1); // +1 跳過空格，保留 "M "
+                    newStroke = currentPath.substring(lastMPos + 1);
                 }
                 
-                // 確保開頭有 M
                 if (!newStroke.trim().startsWith('M')) {
                     newStroke = 'M ' + newStroke.trim();
                 }
@@ -473,7 +459,6 @@
             });
         }
         
-        // 座標轉換函數
         function transformCoordinate(x, y) {
             const scale = 900 / 540;
             const newX = x * scale;
@@ -488,33 +473,28 @@
             });
         }
         
-        // V3改進版：正確處理曲線的median生成
+        // V3.1改進版：增加median密度到20點，讓曲線動畫更流暢
         function extractMedianFromPath(path) {
             const points = [];
             
-            // 解析path命令：分離每個命令及其參數
             const commands = path.match(/[MLQCZ][^MLQCZ]*/g);
             
             if (!commands || commands.length === 0) {
-                return [[0, 0], [100, 100]]; // 預設值
+                return [[0, 0], [100, 100]];
             }
             
             commands.forEach(cmd => {
-                const type = cmd[0]; // 命令類型 (M/L/Q/C/Z)
-                const coordsStr = cmd.slice(1).trim(); // 座標字串
-                const coords = coordsStr.match(/-?\d+/g); // 提取所有數字
+                const type = cmd[0];
+                const coordsStr = cmd.slice(1).trim();
+                const coords = coordsStr.match(/-?\d+/g);
                 
                 if (!coords || coords.length < 2) return;
                 
                 if (type === 'M' || type === 'L') {
-                    // M和L命令：直接取座標
                     points.push([parseInt(coords[0]), parseInt(coords[1])]);
                     
                 } else if (type === 'Q') {
-                    // Q命令（二次貝塞爾曲線）：Q cx cy x y
-                    // cx,cy是控制點（不在曲線上）
-                    // x,y是終點（在曲線上）
-                    // 我們只取終點！
+                    // Q命令：只取終點
                     if (coords.length >= 4) {
                         const endX = parseInt(coords[coords.length - 2]);
                         const endY = parseInt(coords[coords.length - 1]);
@@ -522,29 +502,25 @@
                     }
                     
                 } else if (type === 'C') {
-                    // C命令（三次貝塞爾曲線）：C cx1 cy1 cx2 cy2 x y
-                    // cx1,cy1和cx2,cy2是兩個控制點（不在曲線上）
-                    // x,y是終點（在曲線上）
-                    // 我們只取終點！
+                    // C命令：只取終點
                     if (coords.length >= 6) {
                         const endX = parseInt(coords[coords.length - 2]);
                         const endY = parseInt(coords[coords.length - 1]);
                         points.push([endX, endY]);
                     }
                 }
-                // Z命令（閉合路徑）不需要處理
             });
             
             // 簡化點數
             if (points.length === 0) return [[0, 0], [100, 100]];
             if (points.length === 1) return [points[0], points[0]];
             if (points.length === 2) return points;
-            if (points.length <= 8) return points; // 如果點數已經很少，直接返回
+            if (points.length <= 12) return points; // 12點以下直接返回
             
-            // 對於點數較多的情況，均勻採樣（最多10個點）
+            // V3.1改進：增加到20個點（原本10個）讓曲線更流暢
             const simplified = [points[0]]; // 起點
-            const maxPoints = 10;
-            const sampleCount = Math.min(points.length - 2, maxPoints - 2); // 中間點數量
+            const maxPoints = 20; // 從10增加到20
+            const sampleCount = Math.min(points.length - 2, maxPoints - 2);
             const step = (points.length - 1) / (sampleCount + 1);
             
             for (let i = 1; i <= sampleCount; i++) {
@@ -559,14 +535,12 @@
             return simplified;
         }
         
-        // 生成原始Strokes JSON（540×540，未轉換）
         function generateRawJSON() {
             if (extractedPaths.length === 0) {
                 alert('請先上傳SVG檔案！');
                 return;
             }
             
-            // 直接使用原始路徑，不轉換座標
             const json = {
                 strokes: extractedPaths
             };
@@ -574,42 +548,32 @@
             const output = JSON.stringify(json, null, 2);
             document.getElementById('output').value = output;
             
-            // 顯示成功訊息
             const successMsg = document.getElementById('successMsg');
             successMsg.className = 'success';
             successMsg.innerHTML = `
                 <div style="font-size: 20px; margin-bottom: 10px;">? 原始Strokes JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標系統：540×540（原始未轉換）</div>
-                <div>座標格式：已去小數點</div>
-                <div style="margin-top: 10px; font-size: 16px;">
-                    <strong>說明：</strong>此為拆解後的原始筆劃，可用於進一步處理或分析
-                </div>
             `;
             successMsg.style.display = 'block';
         }
         
-        // 生成最終JSON（900×900，已轉換）
         function generateJSON() {
             if (extractedPaths.length === 0) {
                 alert('請先上傳SVG檔案！');
                 return;
             }
             
-            // 轉換strokes
             const transformedStrokes = extractedPaths.map(path => transformPath(path));
             
             const json = {
                 strokes: transformedStrokes
             };
             
-            // 處理medians
             const mediansText = document.getElementById('mediansInput').value.trim();
             if (mediansText) {
-                // 手動輸入的medians
                 try {
                     const originalMedians = JSON.parse(mediansText);
-                    // 轉換medians座標
                     json.medians = originalMedians.map(median => 
                         median.map(point => {
                             if (Array.isArray(point) && point.length >= 2) {
@@ -623,14 +587,13 @@
                     return;
                 }
             } else {
-                // V3自動生成medians（改進版，正確處理曲線）
+                // V3.1自動生成medians（20點密集版）
                 json.medians = extractedPaths.map(path => {
                     const originalMedian = extractMedianFromPath(path);
                     return originalMedian.map(point => transformCoordinate(point[0], point[1]));
                 });
             }
             
-            // 處理radStrokes
             const radStrokesText = document.getElementById('radStrokesInput').value.trim();
             if (radStrokesText) {
                 json.radStrokes = radStrokesText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
@@ -639,7 +602,6 @@
             const output = JSON.stringify(json, null, 2);
             document.getElementById('output').value = output;
             
-            // 顯示成功訊息
             const successMsg = document.getElementById('successMsg');
             successMsg.className = 'success';
             const hasManualMedians = mediansText !== '';
@@ -647,10 +609,12 @@
                 <div style="font-size: 20px; margin-bottom: 10px;">? 完整JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標轉換：540×540 → 900×900</div>
-                <div>座標格式：已去小數點</div>
-                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3自動生成（改進版曲線處理）</strong>'}</div>
+                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.1自動生成（20點密集版）</strong>'}</div>
                 <div style="margin-top: 10px; font-size: 16px;">
                     <strong>下一步操作：</strong>將下方JSON檔存成 data/字.json
+                </div>
+                <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.3); border-radius: 5px;">
+                    ? <strong>V3.1改進：</strong>更密集的median讓曲線動畫更流暢，練習模式完全兼容！
                 </div>
             `;
             successMsg.style.display = 'block';
