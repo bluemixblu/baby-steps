@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG 轉 hanzi-writer JSON 一鍵整合工具</title>
+    <title>SVG 轉 hanzi-writer JSON 一鍵整合工具 V2</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
@@ -116,6 +116,11 @@
             white-space: pre-wrap;
             word-break: break-all;
         }
+        .preview-item .length {
+            color: #999;
+            font-size: 11px;
+            margin-top: 5px;
+        }
         textarea {
             width: 100%;
             min-height: 150px;
@@ -165,11 +170,16 @@
         button.secondary {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
+        button.raw {
+            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
+            color: #333;
+        }
         .btn-container {
             display: flex;
             gap: 15px;
             justify-content: center;
             margin: 30px 0;
+            flex-wrap: wrap;
         }
         .section-title {
             font-size: 24px;
@@ -232,8 +242,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>? SVG 轉 hanzi-writer JSON 整合工具</h1>
-        <div class="subtitle">一鍵整合：提取路徑、轉換座標、生成JSON</div>
+        <h1>? SVG 轉 hanzi-writer JSON 整合工具 V2</h1>
+        <div class="subtitle">一鍵整合：提取路徑、轉換座標、生成JSON（改進版分割算法）</div>
         
         <div class="info-box">
             <strong>? 一鍵完成功能：</strong>
@@ -243,7 +253,7 @@
                 ? 自動轉換座標 (540×540 到 900×900)<br>
                 ? 自動去除小數點 (符合hanzi-writer)<br>
                 ? 自動排序多檔案<br>
-                ? <strong>智能處理累積型SVG</strong> (自動分離每一筆劃) ?<br>
+                ? <strong>改進版智能處理累積型SVG</strong> (更精確的分割算法) ?<br>
                 ? 一鍵複製完整JSON結果
             </div>
         </div>
@@ -258,7 +268,8 @@
             <strong>? 支援兩種SVG格式：</strong><br>
             1. <strong>獨立型SVG：</strong>每個檔案只包含一筆劃<br>
             2. <strong>累積型SVG：</strong>第N個檔案包含前N筆 (如：82b1_01.svg=第1筆，82b1_02.svg=第1+2筆)<br>
-            ?? 工具會自動檢測並正確提取每個新增筆畫！
+            ?? 工具會自動檢測並正確提取每個新增筆畫！<br>
+            <strong style="color: #28a745;">? V2改進：使用更精確的正則表達式分割算法</strong>
         </div>
         
         <div class="section-title">? 步驟1：上傳SVG檔案</div>
@@ -297,7 +308,8 @@
         </div>
         
         <div class="btn-container">
-            <button onclick="generateJSON()">? 生成最終JSON</button>
+            <button onclick="generateJSON()">? 生成最終JSON (900×900)</button>
+            <button onclick="generateRawJSON()" class="raw">? 生成原始Strokes (540×540)</button>
             <button onclick="clearAll()" class="secondary">?? 清除重來</button>
         </div>
         
@@ -388,13 +400,13 @@
             
             Promise.all(promises).then(paths => {
                 const allPaths = paths.filter(p => p !== null);
-                // 智能提取：自動處理累積型SVG
+                // 智能提取：自動處理累積型SVG（V2改進版）
                 extractedPaths = extractIndividualStrokes(allPaths);
                 displayPreview();
             });
         }
         
-        // 智能分割累積SVG：自動提取每個檔案新增的筆畫
+        // V2改進版：智能分割累積SVG，使用更精確的算法
         function extractIndividualStrokes(allPaths) {
             if (allPaths.length === 0) return [];
             if (allPaths.length === 1) return allPaths;
@@ -410,21 +422,36 @@
             
             // 累積型SVG：提取每個新增的筆畫
             const strokes = [];
+            
             for (let i = 0; i < allPaths.length; i++) {
                 const currentPath = allPaths[i];
                 
-                // 按照 " M " 分割（注意前後有空格，用正則避免誤判）
-                const parts = currentPath.split(/ M (?=[0-9])/);
+                // 改進版分割算法：找到所有 M 命令的位置
+                const mPositions = [];
+                const regex = / M /g;
+                let match;
                 
-                // 取最後一個部分（新增的筆畫）
-                let newStroke = parts[parts.length - 1];
-                
-                // 補上開頭的 M
-                if (!newStroke.startsWith('M')) {
-                    newStroke = 'M ' + newStroke;
+                while ((match = regex.exec(currentPath)) !== null) {
+                    mPositions.push(match.index);
                 }
                 
-                strokes.push(newStroke);
+                let newStroke;
+                
+                if (mPositions.length === 0) {
+                    // 沒有找到 " M "，直接使用整個path
+                    newStroke = currentPath;
+                } else {
+                    // 取最後一個 M 命令之後的所有內容
+                    const lastMPos = mPositions[mPositions.length - 1];
+                    newStroke = currentPath.substring(lastMPos + 1); // +1 跳過空格，保留 "M "
+                }
+                
+                // 確保開頭有 M
+                if (!newStroke.trim().startsWith('M')) {
+                    newStroke = 'M ' + newStroke.trim();
+                }
+                
+                strokes.push(newStroke.trim());
             }
             
             return strokes;
@@ -437,10 +464,11 @@
             extractedPaths.forEach((path, index) => {
                 const item = document.createElement('div');
                 item.className = 'preview-item';
-                const preview = path.length > 100 ? path.substring(0, 100) + '...' : path;
+                const preview = path.length > 150 ? path.substring(0, 150) + '...' : path;
                 item.innerHTML = `
                     <strong>第 ${index + 1} 筆畫</strong>
                     <code>${preview}</code>
+                    <div class="length">完整長度：${path.length} 字符</div>
                 `;
                 previewDiv.appendChild(item);
             });
@@ -491,6 +519,37 @@
             return simplified;
         }
         
+        // 生成原始Strokes JSON（540×540，未轉換）
+        function generateRawJSON() {
+            if (extractedPaths.length === 0) {
+                alert('請先上傳SVG檔案！');
+                return;
+            }
+            
+            // 直接使用原始路徑，不轉換座標
+            const json = {
+                strokes: extractedPaths
+            };
+            
+            const output = JSON.stringify(json, null, 2);
+            document.getElementById('output').value = output;
+            
+            // 顯示成功訊息
+            const successMsg = document.getElementById('successMsg');
+            successMsg.className = 'success';
+            successMsg.innerHTML = `
+                <div style="font-size: 20px; margin-bottom: 10px;">? 原始Strokes JSON生成成功！</div>
+                <div>筆畫數： ${extractedPaths.length} 劃</div>
+                <div>座標系統：540×540（原始未轉換）</div>
+                <div>座標格式：已去小數點</div>
+                <div style="margin-top: 10px; font-size: 16px;">
+                    <strong>說明：</strong>此為拆解後的原始筆劃，可用於進一步處理或分析
+                </div>
+            `;
+            successMsg.style.display = 'block';
+        }
+        
+        // 生成最終JSON（900×900，已轉換）
         function generateJSON() {
             if (extractedPaths.length === 0) {
                 alert('請先上傳SVG檔案！');
@@ -545,7 +604,7 @@
             successMsg.className = 'success';
             const hasManualMedians = mediansText !== '';
             successMsg.innerHTML = `
-                <div style="font-size: 20px; margin-bottom: 10px;">? JSON生成成功！</div>
+                <div style="font-size: 20px; margin-bottom: 10px;">? 完整JSON生成成功！</div>
                 <div>筆畫數： ${extractedPaths.length} 劃</div>
                 <div>座標轉換：540×540 → 900×900</div>
                 <div>座標格式：已去小數點</div>
@@ -585,3 +644,4 @@
     </script>
 </body>
 </html>
+
