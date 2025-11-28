@@ -3,373 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG 轉 hanzi-writer JSON 工具 V3.5</title>
+    <title>SVG to hanzi-writer JSON V3.8</title>
     <style>
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-        h1 {
-            color: #667eea;
-            border-bottom: 4px solid #667eea;
-            padding-bottom: 15px;
-            text-align: center;
-            font-size: 32px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        .info-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        .info-box strong {
-            display: block;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 60px;
-            text-align: center;
-            background: #f8f9ff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        .upload-area:hover {
-            background: #e8ebff;
-            border-color: #764ba2;
-            transform: translateY(-2px);
-        }
-        .upload-area input[type="file"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .file-list {
-            margin: 20px 0;
-        }
-        .file-item {
-            background: #f8f9ff;
-            padding: 12px 15px;
-            margin: 8px 0;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #667eea;
-        }
-        .file-name {
-            font-weight: bold;
-            color: #333;
-        }
-        .file-status {
-            color: #28a745;
-            font-size: 14px;
-        }
-        .preview-area {
-            margin: 20px 0;
-        }
-        .preview-item {
-            background: #f8f9ff;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border-left: 4px solid #764ba2;
-        }
-        .preview-item strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .preview-item code {
-            background: white;
-            padding: 10px;
-            display: block;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 12px;
-            color: #333;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .preview-item .length {
-            color: #999;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-family: "Consolas", monospace;
-            font-size: 14px;
-            resize: vertical;
-            box-sizing: border-box;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        textarea#output {
-            min-height: 300px;
-            background: #f8f9ff;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        button.secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        button.raw {
-            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
-            color: #333;
-        }
-        .btn-container {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-        .section-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 30px 0 15px 0;
-            padding-left: 15px;
-            border-left: 5px solid #764ba2;
-        }
-        .label {
-            display: block;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        .help-text {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-        .success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-            animation: slideIn 0.5s ease;
-        }
-        .formula-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            font-family: "Consolas", monospace;
-            color: #856404;
-        }
-        .warning-box {
-            background: #d1ecf1;
-            border: 2px solid #0c5460;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #0c5460;
-        }
-        .error-box {
-            background: #f8d7da;
-            border: 2px solid #dc3545;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #721c24;
-        }
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; max-width: 1400px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        h1 { color: #667eea; border-bottom: 4px solid #667eea; padding-bottom: 15px; text-align: center; font-size: 28px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        .info-box { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        .upload-area { border: 3px dashed #667eea; border-radius: 15px; padding: 60px; text-align: center; background: #f8f9ff; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .upload-area:hover { background: #e8ebff; border-color: #764ba2; transform: translateY(-2px); }
+        .upload-area input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+        .file-list { margin: 20px 0; }
+        .file-item { background: #f8f9ff; padding: 12px 15px; margin: 8px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #667eea; }
+        .preview-area { margin: 20px 0; }
+        textarea { width: 100%; min-height: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-family: "Consolas", monospace; font-size: 14px; resize: vertical; box-sizing: border-box; }
+        textarea#output { min-height: 300px; background: #f8f9ff; }
+        input[type="text"] { width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: bold; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        button.secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-container { display: flex; gap: 15px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
+        .section-title { font-size: 20px; font-weight: bold; color: #667eea; margin: 30px 0 15px 0; padding-left: 15px; border-left: 5px solid #764ba2; }
+        .label { display: block; font-weight: bold; color: #333; margin-bottom: 8px; font-size: 16px; }
+        .success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>? SVG 轉 hanzi-writer JSON 工具 V3.5</h1>
-        <div class="subtitle">V3.5新增：智能路徑簡化，自動去除回繞，保留主要書寫方向！</div>
+        <h1>SVG to hanzi-writer JSON V3.8</h1>
+        <div class="subtitle">V3.8 Fix: Closed path slice logic corrected</div>
         
         <div class="info-box">
-            <strong>? V3.5核心改進：</strong>
+            <strong>V3.8 Key Fix:</strong>
             <div style="margin-top: 10px; line-height: 1.8;">
-                ? <strong>新增：智能路徑簡化算法</strong><br>
-                ? 自動檢測並移除回繞部分（如鉤、折的回程）<br>
-                ? 保持主要書寫方向的單調性<br>
-                ? 完美處理複雜筆畫（豎鉤、橫折等）<br>
-                ? 正確識別座標系（左上0,900）<br>
-                ? 移除Z命令，支援練習模式
+                When minYIndex > maxYIndex: slice(maxYIndex, minYIndex+1).reverse()<br>
+                Result: Correct Y-value sequence (decreasing = top to bottom in 900 system)<br>
+                <strong style="color: #ffd700;">Press F12 to view diagnostic logs!</strong>
             </div>
         </div>
         
-        <div class="error-box">
-            <strong>?? V3.5解決的問題：</strong><br>
-            <strong>問題：</strong>複雜筆畫median包含回繞（Y: 673→598→790）<br>
-            <strong>原因：</strong>SVG路徑包含完整繪製軌跡，包括回程<br>
-            <strong>解決：</strong>智能過濾，只保留主要方向的點
-        </div>
-        
-        <div class="formula-box">
-            <strong>?? V3.5簡化算法：</strong><br>
-            1. <strong>檢測主要方向：</strong>橫/豎/斜<br>
-            2. <strong>移除反向點：</strong><br>
-            　? 豎劃往下（Y增）：移除Y減少的點<br>
-            　? 豎劃往上（Y減）：移除Y增加的點<br>
-            　? 橫劃往右（X增）：移除X減少的點<br>
-            3. <strong>保留起點和終點</strong><br>
-            4. <strong>修正方向：</strong>確保符合書寫習慣
-        </div>
-        
-        <div class="warning-box">
-            <strong>? 支援兩種SVG格式：</strong><br>
-            1. <strong>獨立型SVG：</strong>每個檔案只包含一筆劃<br>
-            2. <strong>累積型SVG：</strong>第N個檔案包含前N筆
-        </div>
-        
-        <div class="section-title">? 步驟1：上傳SVG檔案</div>
+        <div class="section-title">Step 1: Upload SVG Files</div>
         <div class="upload-area" id="uploadArea">
             <input type="file" id="fileInput" accept=".svg" multiple>
             <div style="font-size: 60px;">?</div>
-            <div style="font-size: 20px; margin: 15px 0; font-weight: bold;">拖曳或點擊上傳SVG檔案（支援多選）</div>
-            <div style="color: #666;">檔名請依筆劃順序命名（如：82b1_01.svg, 82b1_02.svg...）</div>
+            <div style="font-size: 20px; margin: 15px 0; font-weight: bold;">Drag or click to upload SVG files</div>
         </div>
         
         <div id="fileList" class="file-list"></div>
         <div id="previewArea" class="preview-area"></div>
         
-        <div class="section-title">?? 步驟2：選填額外資訊（可選）</div>
-        
+        <div class="section-title">Step 2: RadStrokes (Optional)</div>
         <div style="margin: 20px 0;">
-            <label class="label">Medians（筆畫骨架座標）：<span style="color: #28a745; font-size: 14px;">可留空！V3.5會自動生成並簡化</span></label>
-            <div class="help-text">格式：[[[x1,y1],[x2,y2]],[[x1,y1],[x2,y2]],...] - 每筆畫一個陣列</div>
-            <textarea id="mediansInput" placeholder='（可留空，V3.5會自動生成並智能簡化）
-
-範例：
-[
-  [[193, 74], [170, 93], [166, 109], [195, 168]],
-  [[91, 143], [109, 147], [191, 128], [231, 120]]
-]
-
-提醒：
-1. 留空時：V3.5會自動生成、簡化並修正方向
-2. 手動輸入：請輸入原始540×540座標，工具會自動轉換'></textarea>
-        </div>
-        
-        <div style="margin: 20px 0;">
-            <label class="label">RadStrokes（部首筆畫索引）：</label>
-            <div class="help-text">部首筆劃索引，範例：0,1,2,3 (表示前4筆是部首，如草字頭)</div>
-            <input type="text" id="radStrokesInput" placeholder="範例：0,1,2,3">
+            <label class="label">RadStrokes (radical stroke indices):</label>
+            <input type="text" id="radStrokesInput" placeholder="Example: 0,1,2,3">
         </div>
         
         <div class="btn-container">
-            <button onclick="generateJSON()">? 生成最終JSON (900×900)</button>
-            <button onclick="generateRawJSON()" class="raw">? 生成原始Strokes (540×540)</button>
-            <button onclick="clearAll()" class="secondary">?? 清除重來</button>
+            <button onclick="generateJSON()">Generate JSON</button>
+            <button onclick="clearAll()" class="secondary">Clear All</button>
         </div>
         
         <div id="successMsg" style="display: none;"></div>
         
-        <div class="section-title">? 步驟3：複製完整JSON</div>
-        <div class="help-text" style="margin-bottom: 10px;">
-            將下方JSON檔存成 data/字.json，然後在 index.html 中就能使用台灣標準筆順！
-        </div>
-        <textarea id="output" placeholder="生成的JSON會顯示在這裡..." readonly></textarea>
+        <div class="section-title">Step 3: Copy JSON</div>
+        <textarea id="output" placeholder="Generated JSON will appear here..." readonly></textarea>
         
         <div class="btn-container">
-            <button onclick="copyToClipboard()">? 複製到剪貼簿</button>
+            <button onclick="copyToClipboard()">Copy to Clipboard</button>
         </div>
     </div>
 
     <script>
-        let svgFiles = [];
-        let extractedPaths = [];
+        let svgFiles = [], extractedPaths = [];
+        const uploadArea = document.getElementById('uploadArea'), fileInput = document.getElementById('fileInput');
         
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.background = '#e8ebff';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.background = '#f8f9ff';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.background = '#f8f9ff';
-            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.svg'));
-            handleFiles(files);
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            handleFiles(files);
-        });
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.background = '#e8ebff'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.background = '#f8f9ff'; });
+        uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.style.background = '#f8f9ff'; handleFiles(Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.svg'))); });
+        fileInput.addEventListener('change', (e) => { handleFiles(Array.from(e.target.files)); });
         
         function handleFiles(files) {
             svgFiles = files.sort((a, b) => a.name.localeCompare(b.name));
@@ -379,45 +90,30 @@
         
         function displayFileList() {
             const listDiv = document.getElementById('fileList');
-            listDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">已載入 ' + svgFiles.length + ' 個檔案：</div>';
-            
+            listDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 10px;">Loaded ' + svgFiles.length + ' files</div>';
             svgFiles.forEach((file, index) => {
                 const item = document.createElement('div');
                 item.className = 'file-item';
-                item.innerHTML = `
-                    <span class="file-name">${index + 1}. ${file.name}</span>
-                    <span class="file-status">? 準備完成</span>
-                `;
+                item.innerHTML = '<span>' + (index + 1) + '. ' + file.name + '</span><span>OK</span>';
                 listDiv.appendChild(item);
             });
         }
         
         function extractAllPaths() {
             extractedPaths = [];
-            const promises = svgFiles.map(file => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const content = e.target.result;
-                        const pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
-                        if (pathMatch && pathMatch[1]) {
-                            let path = pathMatch[1];
-                            
-                            path = path.replace(/(\d+)\.\d+/g, (match) => {
-                                return Math.round(parseFloat(match)).toString();
-                            });
-                            
-                            path = path.replace(/\s*Z\s*$/gi, '');
-                            path = path.replace(/\s+Z\s+/gi, ' ');
-                            
-                            resolve(path.trim());
-                        } else {
-                            resolve(null);
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            });
+            const promises = svgFiles.map(file => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result, pathMatch = content.match(/<path[^>]*d="([^"]*)"/);
+                    if (pathMatch && pathMatch[1]) {
+                        let path = pathMatch[1];
+                        path = path.replace(/(\d+)\.\d+/g, (match) => Math.round(parseFloat(match)).toString());
+                        path = path.replace(/\s*Z\s*$/gi, '').replace(/\s+Z\s+/gi, ' ');
+                        resolve(path.trim());
+                    } else { resolve(null); }
+                };
+                reader.readAsText(file);
+            }));
             
             Promise.all(promises).then(paths => {
                 const allPaths = paths.filter(p => p !== null);
@@ -429,66 +125,33 @@
         function extractIndividualStrokes(allPaths) {
             if (allPaths.length === 0) return [];
             if (allPaths.length === 1) return allPaths;
-            
             const path1Sample = allPaths[0].substring(0, Math.min(150, allPaths[0].length));
             const isCumulative = allPaths.length >= 2 && allPaths[1].includes(path1Sample.substring(0, 80));
-            
-            if (!isCumulative) {
-                return allPaths;
-            }
-            
+            if (!isCumulative) return allPaths;
             const strokes = [];
-            
             for (let i = 0; i < allPaths.length; i++) {
-                const currentPath = allPaths[i];
-                const mPositions = [];
-                const regex = / M /g;
+                const currentPath = allPaths[i], mPositions = [], regex = / M /g;
                 let match;
-                
-                while ((match = regex.exec(currentPath)) !== null) {
-                    mPositions.push(match.index);
-                }
-                
-                let newStroke;
-                
-                if (mPositions.length === 0) {
-                    newStroke = currentPath;
-                } else {
-                    const lastMPos = mPositions[mPositions.length - 1];
-                    newStroke = currentPath.substring(lastMPos + 1);
-                }
-                
-                if (!newStroke.trim().startsWith('M')) {
-                    newStroke = 'M ' + newStroke.trim();
-                }
-                
+                while ((match = regex.exec(currentPath)) !== null) mPositions.push(match.index);
+                let newStroke = mPositions.length === 0 ? currentPath : currentPath.substring(mPositions[mPositions.length - 1] + 1);
+                if (!newStroke.trim().startsWith('M')) newStroke = 'M ' + newStroke.trim();
                 strokes.push(newStroke.trim());
             }
-            
             return strokes;
         }
         
         function displayPreview() {
             const previewDiv = document.getElementById('previewArea');
-            previewDiv.innerHTML = '<div class="section-title">?? 已提取的獨立筆畫Path（540×540原始座標）：</div>';
-            
-            extractedPaths.forEach((path, index) => {
-                const item = document.createElement('div');
-                item.className = 'preview-item';
-                const preview = path.length > 150 ? path.substring(0, 150) + '...' : path;
-                item.innerHTML = `
-                    <strong>第 ${index + 1} 筆畫</strong>
-                    <code>${preview}</code>
-                    <div class="length">完整長度：${path.length} 字符</div>
-                `;
-                previewDiv.appendChild(item);
-            });
+            previewDiv.innerHTML = '<div class="section-title">Extracted ' + extractedPaths.length + ' strokes</div>';
         }
         
+        // Coordinate transformation: 540 system to 900 system
+        // 540: top-left (0,0), bottom-right (540,540), Y increases downward
+        // 900: top-left (0,900), bottom-right (900,0), Y increases upward
         function transformCoordinate(x, y) {
             const scale = 900 / 540;
             const newX = x * scale;
-            const newY = 900 - (y * scale);
+            const newY = 900 - (y * scale);  // Y-axis flip!
             return [Math.round(newX), Math.round(newY)];
         }
         
@@ -499,299 +162,221 @@
             });
         }
         
-        // V3.5核心：智能生成median、簡化路徑、修正方向
-        function extractMedianFromPath(path) {
-            const points = [];
-            
-            const commands = path.match(/[MLQCZ][^MLQCZ]*/g);
-            
-            if (!commands || commands.length === 0) {
-                return [[0, 0], [100, 100]];
-            }
+        function extractMedianFromPath(path, strokeIndex) {
+            console.log('\n========== Stroke ' + (strokeIndex + 1) + ' median generation ==========');
+            const points = [], commands = path.match(/[MLQCZ][^MLQCZ]*/g);
+            if (!commands || commands.length === 0) return [[0, 0], [100, 100]];
             
             commands.forEach(cmd => {
-                const type = cmd[0];
-                const coordsStr = cmd.slice(1).trim();
-                const coords = coordsStr.match(/-?\d+/g);
-                
+                const type = cmd[0], coordsStr = cmd.slice(1).trim(), coords = coordsStr.match(/-?\d+/g);
                 if (!coords || coords.length < 2) return;
-                
-                if (type === 'M' || type === 'L') {
-                    points.push([parseInt(coords[0]), parseInt(coords[1])]);
-                } else if (type === 'Q') {
-                    if (coords.length >= 4) {
-                        points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
-                    }
-                } else if (type === 'C') {
-                    if (coords.length >= 6) {
-                        points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
-                    }
-                }
+                if (type === 'M' || type === 'L') points.push([parseInt(coords[0]), parseInt(coords[1])]);
+                else if (type === 'Q' && coords.length >= 4) points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
+                else if (type === 'C' && coords.length >= 6) points.push([parseInt(coords[coords.length - 2]), parseInt(coords[coords.length - 1])]);
             });
             
+            console.log('Extracted', points.length, 'points');
             if (points.length === 0) return [[0, 0], [100, 100]];
             if (points.length === 1) return [points[0], points[0]];
             if (points.length === 2) return points;
             
-            // V3.5關鍵步驟1：路徑簡化（移除回繞）
-            let simplified = simplifyPath(points);
+            let simplified;
+            if (isClosedPath(points)) {
+                console.log('CLOSED PATH detected');
+                simplified = simplifyClosedPath(points);
+            } else {
+                console.log('Open path');
+                simplified = simplifyOpenPath(points);
+            }
             
-            // V3.5關鍵步驟2：採樣到合適的點數
-            simplified = samplePoints(simplified, 15); // 降到15點，更簡潔
+            console.log('After simplify:', simplified.length, 'points');
+            console.log('Y values (540 system):', simplified.map(p => p[1]).join(' -> '));
             
-            // V3.5關鍵步驟3：修正方向
+            simplified = samplePoints(simplified, 15);
+            console.log('After sampling:', simplified.length, 'points');
+            
+            const beforeCorrection = simplified.map(p => [...p]);
             simplified = correctMedianDirection(simplified);
+            const wasReversed = beforeCorrection[0][0] !== simplified[0][0] || beforeCorrection[0][1] !== simplified[0][1];
+            console.log('Direction correction:', wasReversed ? 'REVERSED' : 'unchanged');
+            console.log('Final Y values (540 system):', simplified.map(p => p[1]).join(' -> '));
+            console.log('==========================================\n');
             
             return simplified;
         }
         
-        // V3.5新增：路徑簡化算法 - 移除回繞部分
-        function simplifyPath(points) {
-            if (points.length <= 3) return points;
+        function isClosedPath(points) {
+            if (points.length < 3) return false;
+            const start = points[0], end = points[points.length - 1];
+            const distance = Math.sqrt(Math.pow(end[0] - start[0], 2) + Math.pow(end[1] - start[1], 2));
+            return distance < 10;
+        }
+        
+        // V3.8 KEY FIX: Correct handling of closed paths
+        // In 540 system: Y small = top, Y large = bottom
+        // For vertical strokes (top to bottom): Y should increase in 540 system
+        function simplifyClosedPath(points) {
+            console.log('  [Closed Path] Original points:', points.length);
             
-            const startPoint = points[0];
-            const endPoint = points[points.length - 1];
-            
-            const deltaX = Math.abs(endPoint[0] - startPoint[0]);
-            const deltaY = Math.abs(endPoint[1] - startPoint[1]);
-            
-            // 判斷主要方向
-            let mainDirection;
-            if (deltaX > deltaY * 1.5) {
-                mainDirection = 'horizontal';
-            } else if (deltaY > deltaX * 1.5) {
-                mainDirection = 'vertical';
-            } else {
-                mainDirection = 'diagonal';
+            // Find min and max Y indices
+            let maxYIndex = 0, minYIndex = 0;
+            for (let i = 1; i < points.length; i++) {
+                if (points[i][1] > points[maxYIndex][1]) maxYIndex = i;
+                if (points[i][1] < points[minYIndex][1]) minYIndex = i;
             }
             
-            // 根據主要方向過濾點
-            const filtered = [points[0]]; // 起點
+            console.log('  minY (top):', 'index=' + minYIndex, 'coord=(' + points[minYIndex][0] + ',' + points[minYIndex][1] + ')');
+            console.log('  maxY (bottom):', 'index=' + maxYIndex, 'coord=(' + points[maxYIndex][0] + ',' + points[maxYIndex][1] + ')');
             
+            const deltaX = Math.abs(points[maxYIndex][0] - points[minYIndex][0]);
+            const deltaY = Math.abs(points[maxYIndex][1] - points[minYIndex][1]);
+            console.log('  deltaX:', deltaX, 'deltaY:', deltaY);
+            
+            let result;
+            if (deltaY > deltaX * 1.5) {
+                // Vertical stroke: need Y increasing (top to bottom in 540 system)
+                console.log('  -> Vertical stroke');
+                if (minYIndex < maxYIndex) {
+                    // minY comes before maxY - just slice normally
+                    console.log('  -> slice [' + minYIndex + ', ' + (maxYIndex + 1) + ')');
+                    result = points.slice(minYIndex, maxYIndex + 1);
+                } else {
+                    // V3.8 FIX: minY comes AFTER maxY in the path
+                    // Path goes: start -> maxY (bottom) -> minY (top) -> back to start
+                    // We need: minY -> maxY (top to bottom)
+                    // So take [maxY, minY] and REVERSE it
+                    console.log('  -> V3.8 FIX: slice [' + maxYIndex + ', ' + (minYIndex + 1) + ') then REVERSE');
+                    result = points.slice(maxYIndex, minYIndex + 1).reverse();
+                }
+            } else {
+                // Horizontal stroke: need X increasing (left to right)
+                console.log('  -> Horizontal stroke');
+                let minXIndex = 0, maxXIndex = 0;
+                for (let i = 1; i < points.length; i++) {
+                    if (points[i][0] < points[minXIndex][0]) minXIndex = i;
+                    if (points[i][0] > points[maxXIndex][0]) maxXIndex = i;
+                }
+                if (minXIndex < maxXIndex) {
+                    result = points.slice(minXIndex, maxXIndex + 1);
+                } else {
+                    // V3.8 FIX: Same logic for horizontal
+                    result = points.slice(maxXIndex, minXIndex + 1).reverse();
+                }
+            }
+            
+            console.log('  Result:', result.length, 'points');
+            console.log('  Y values:', result.map(p => p[1]).join(' -> '));
+            return result;
+        }
+        
+        function simplifyOpenPath(points) {
+            if (points.length <= 3) return points;
+            const startPoint = points[0], endPoint = points[points.length - 1];
+            const deltaX = Math.abs(endPoint[0] - startPoint[0]), deltaY = Math.abs(endPoint[1] - startPoint[1]);
+            let mainDirection = deltaX > deltaY * 1.5 ? 'horizontal' : deltaY > deltaX * 1.5 ? 'vertical' : 'diagonal';
+            const filtered = [points[0]];
             if (mainDirection === 'vertical') {
-                // 豎劃：檢查Y值是否單調
-                const goingDown = endPoint[1] > startPoint[1]; // Y增 = 往下
-                
+                const goingDown = endPoint[1] > startPoint[1];
                 for (let i = 1; i < points.length - 1; i++) {
-                    const prevPoint = filtered[filtered.length - 1];
-                    const currPoint = points[i];
-                    
-                    if (goingDown) {
-                        // 主要往下：只保留Y值增加或相等的點
-                        if (currPoint[1] >= prevPoint[1]) {
-                            filtered.push(currPoint);
-                        }
-                    } else {
-                        // 主要往上：只保留Y值減少或相等的點
-                        if (currPoint[1] <= prevPoint[1]) {
-                            filtered.push(currPoint);
-                        }
-                    }
+                    const prevPoint = filtered[filtered.length - 1], currPoint = points[i];
+                    if ((goingDown && currPoint[1] >= prevPoint[1]) || (!goingDown && currPoint[1] <= prevPoint[1])) filtered.push(currPoint);
                 }
             } else if (mainDirection === 'horizontal') {
-                // 橫劃：檢查X值是否單調
-                const goingRight = endPoint[0] > startPoint[0]; // X增 = 往右
-                
+                const goingRight = endPoint[0] > startPoint[0];
                 for (let i = 1; i < points.length - 1; i++) {
-                    const prevPoint = filtered[filtered.length - 1];
-                    const currPoint = points[i];
-                    
-                    if (goingRight) {
-                        // 主要往右：只保留X值增加或相等的點
-                        if (currPoint[0] >= prevPoint[0]) {
-                            filtered.push(currPoint);
-                        }
-                    } else {
-                        // 主要往左：只保留X值減少或相等的點
-                        if (currPoint[0] <= prevPoint[0]) {
-                            filtered.push(currPoint);
-                        }
-                    }
+                    const prevPoint = filtered[filtered.length - 1], currPoint = points[i];
+                    if ((goingRight && currPoint[0] >= prevPoint[0]) || (!goingRight && currPoint[0] <= prevPoint[0])) filtered.push(currPoint);
                 }
             } else {
-                // 斜劃：保留所有點，但移除明顯的反向點
                 for (let i = 1; i < points.length - 1; i++) {
-                    const prevPoint = filtered[filtered.length - 1];
-                    const currPoint = points[i];
-                    
-                    // 計算"進度"（相對於起點到終點的方向）
-                    const progressPrev = (prevPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + 
-                                         (prevPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
-                    const progressCurr = (currPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + 
-                                         (currPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
-                    
-                    // 只保留進度不倒退的點
-                    if (progressCurr >= progressPrev * 0.95) { // 允許5%容差
-                        filtered.push(currPoint);
-                    }
+                    const prevPoint = filtered[filtered.length - 1], currPoint = points[i];
+                    const progressPrev = (prevPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + (prevPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
+                    const progressCurr = (currPoint[0] - startPoint[0]) * (endPoint[0] - startPoint[0]) + (currPoint[1] - startPoint[1]) * (endPoint[1] - startPoint[1]);
+                    if (progressCurr >= progressPrev * 0.95) filtered.push(currPoint);
                 }
             }
-            
-            // 確保終點保留
             filtered.push(points[points.length - 1]);
-            
             return filtered.length >= 2 ? filtered : points;
         }
         
-        // V3.5新增：智能採樣到指定點數
         function samplePoints(points, targetCount) {
             if (points.length <= targetCount) return points;
-            
-            const sampled = [points[0]]; // 起點
-            const step = (points.length - 1) / (targetCount - 1);
-            
+            const sampled = [points[0]], step = (points.length - 1) / (targetCount - 1);
             for (let i = 1; i < targetCount - 1; i++) {
                 const index = Math.round(i * step);
-                if (index > 0 && index < points.length - 1) {
-                    sampled.push(points[index]);
-                }
+                if (index > 0 && index < points.length - 1) sampled.push(points[index]);
             }
-            
-            sampled.push(points[points.length - 1]); // 終點
-            
+            sampled.push(points[points.length - 1]);
             return sampled;
         }
         
-        // V3.5：修正方向（基於V3.4）
+        // Direction correction for 540 system
+        // Vertical: Y should increase (top to bottom)
+        // Horizontal: X should increase (left to right)
         function correctMedianDirection(median) {
             if (median.length < 2) return median;
-            
-            const startPoint = median[0];
-            const endPoint = median[median.length - 1];
-            
-            const deltaX = Math.abs(endPoint[0] - startPoint[0]);
-            const deltaY = Math.abs(endPoint[1] - startPoint[1]);
-            
+            const startPoint = median[0], endPoint = median[median.length - 1];
+            const deltaX = Math.abs(endPoint[0] - startPoint[0]), deltaY = Math.abs(endPoint[1] - startPoint[1]);
             let shouldReverse = false;
             
             if (deltaX > deltaY * 1.5) {
-                // 橫劃
-                if (startPoint[0] > endPoint[0]) {
-                    shouldReverse = true;
-                }
+                // Horizontal: X should increase
+                if (startPoint[0] > endPoint[0]) shouldReverse = true;
             } else if (deltaY > deltaX * 1.5) {
-                // 豎劃：Y值越大越上面
-                if (startPoint[1] < endPoint[1]) {
-                    shouldReverse = true;
-                }
+                // Vertical: Y should increase in 540 system (top to bottom)
+                if (startPoint[1] > endPoint[1]) shouldReverse = true;
             } else {
-                // 斜劃
-                if (startPoint[1] < endPoint[1]) {
-                    shouldReverse = true;
-                }
+                // Diagonal: usually top-left to bottom-right, so Y should increase
+                if (startPoint[1] > endPoint[1]) shouldReverse = true;
             }
             
             return shouldReverse ? median.slice().reverse() : median;
         }
         
-        function generateRawJSON() {
-            if (extractedPaths.length === 0) {
-                alert('請先上傳SVG檔案！');
-                return;
-            }
-            
-            const json = {
-                strokes: extractedPaths
-            };
-            
-            const output = JSON.stringify(json, null, 2);
-            document.getElementById('output').value = output;
-            
-            const successMsg = document.getElementById('successMsg');
-            successMsg.className = 'success';
-            successMsg.innerHTML = `
-                <div style="font-size: 20px; margin-bottom: 10px;">? 原始Strokes JSON生成成功！</div>
-                <div>筆畫數： ${extractedPaths.length} 劃</div>
-                <div>座標系統：540×540（原始未轉換）</div>
-            `;
-            successMsg.style.display = 'block';
-        }
-        
         function generateJSON() {
-            if (extractedPaths.length === 0) {
-                alert('請先上傳SVG檔案！');
-                return;
-            }
+            if (extractedPaths.length === 0) { alert('Please upload SVG files first!'); return; }
+            
+            console.clear();
+            console.log('========== V3.8 JSON Generation ==========');
+            console.log('Total strokes:', extractedPaths.length);
             
             const transformedStrokes = extractedPaths.map(path => transformPath(path));
-            
             const json = {
-                strokes: transformedStrokes
+                strokes: transformedStrokes,
+                medians: extractedPaths.map((path, index) => {
+                    const originalMedian = extractMedianFromPath(path, index);
+                    const transformed = originalMedian.map(point => transformCoordinate(point[0], point[1]));
+                    console.log('Stroke ' + (index + 1) + ' final median (900 system):', transformed.map(p => '(' + p[0] + ',' + p[1] + ')').join(' -> '));
+                    return transformed;
+                })
             };
             
-            const mediansText = document.getElementById('mediansInput').value.trim();
-            if (mediansText) {
-                try {
-                    const originalMedians = JSON.parse(mediansText);
-                    json.medians = originalMedians.map(median => 
-                        median.map(point => {
-                            if (Array.isArray(point) && point.length >= 2) {
-                                return transformCoordinate(point[0], point[1]);
-                            }
-                            return point;
-                        })
-                    );
-                } catch (e) {
-                    alert('Medians格式錯誤，請檢查JSON格式！\n錯誤：' + e.message);
-                    return;
-                }
-            } else {
-                // V3.5自動生成：簡化 + 修正方向
-                json.medians = extractedPaths.map(path => {
-                    const originalMedian = extractMedianFromPath(path);
-                    return originalMedian.map(point => transformCoordinate(point[0], point[1]));
-                });
-            }
-            
             const radStrokesText = document.getElementById('radStrokesInput').value.trim();
-            if (radStrokesText) {
-                json.radStrokes = radStrokesText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-            }
+            if (radStrokesText) json.radStrokes = radStrokesText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            
+            console.log('\n========== Generation Complete ==========');
+            console.log('Check Stroke 1 Y values - should DECREASE (e.g., 800 -> 700 -> 600)');
             
             const output = JSON.stringify(json, null, 2);
             document.getElementById('output').value = output;
             
             const successMsg = document.getElementById('successMsg');
             successMsg.className = 'success';
-            const hasManualMedians = mediansText !== '';
-            successMsg.innerHTML = `
-                <div style="font-size: 20px; margin-bottom: 10px;">? 完整JSON生成成功！</div>
-                <div>筆畫數： ${extractedPaths.length} 劃</div>
-                <div>座標轉換：540×540 → 900×900</div>
-                <div>Medians: ${hasManualMedians ? '使用手動輸入' : '<strong style="color:#ffd700">V3.5自動生成（智能簡化）</strong>'}</div>
-                <div style="margin-top: 10px; padding: 10px; background: rgba(255,215,0,0.3); border-radius: 5px; color:#000;">
-                    ? <strong>V3.5關鍵功能：</strong><br>
-                    ? 移除回繞部分（Y: 598→790?）<br>
-                    ? 保持單調性（Y: 673→598?）<br>
-                    ? 完美處理複雜筆畫（鉤、折）<br>
-                    ? 練習書寫完全支援！
-                </div>
-                <div style="margin-top: 10px; font-size: 16px;">
-                    <strong>下一步操作：</strong>將下方JSON檔存成 data/字.json
-                </div>
-            `;
+            successMsg.innerHTML = '<div style="font-size: 20px; margin-bottom: 10px;">V3.8 JSON Generated!</div><div>Strokes: ' + extractedPaths.length + '</div><div style="color:#ffd700; margin-top:10px;"><strong>Check F12 console for Y-value diagnostics!</strong></div>';
             successMsg.style.display = 'block';
         }
         
         function copyToClipboard() {
             const output = document.getElementById('output');
-            if (!output.value) {
-                alert('尚未生成JSON，請先產生！');
-                return;
-            }
-            
-            output.select();
-            document.execCommand('copy');
-            alert('? 已複製到剪貼簿！');
+            if (!output.value) { alert('No JSON generated yet!'); return; }
+            output.select(); document.execCommand('copy'); alert('Copied!');
         }
         
         function clearAll() {
-            if (confirm('確定要清除所有資料嗎？')) {
-                svgFiles = [];
-                extractedPaths = [];
+            if (confirm('Clear all?')) {
+                svgFiles = []; extractedPaths = [];
                 document.getElementById('fileList').innerHTML = '';
                 document.getElementById('previewArea').innerHTML = '';
-                document.getElementById('mediansInput').value = '';
                 document.getElementById('radStrokesInput').value = '';
                 document.getElementById('output').value = '';
                 document.getElementById('successMsg').style.display = 'none';
@@ -801,4 +386,3 @@
     </script>
 </body>
 </html>
-
