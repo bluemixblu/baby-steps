@@ -30,9 +30,10 @@
         #character-target-div::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #d47e7e; pointer-events: none; }
         #character-target-div::after { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background: #d47e7e; pointer-events: none; }
         .zhuyin-system { display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #333; }
-        .zhuyin-light-tone { font-size: 30px; height: 30px; line-height: 30px; margin-bottom: -5px; visibility: hidden; }
-        .zhuyin-symbols { font-size: 40px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 10px; }
-        .zhuyin-side-tone { font-size: 35px; width: 25px; display: flex; justify-content: center; }
+		.zhuyin-light-tone { font-size: 48px; height: 50px; line-height: 50px; visibility: hidden; text-align: center; }
+		.zhuyin-body-row { display: flex; flex-direction: row; align-items: center; }
+		.zhuyin-symbols { font-size: 40px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 8px; }
+		.zhuyin-side-tone { font-size: 56px; display: flex; align-items: center; justify-content: center; margin-left: 3px; }
         .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
         .btn { padding: 10px 20px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
         .btn-speak { background: #FFB74D; color: white; } .btn-animate { background: #4FC3F7; color: white; } .btn-quiz { background: #66BB6A; color: white; }
