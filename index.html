@@ -1,14 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>康軒小一國字筆順學習 V17.0 (台灣標準)</title>
+    <title>康軒小一國字筆順練習 V18.0</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <style>
         body { font-family: "Microsoft JhengHei", "DFKai-SB", "KaiTi", serif; background-color: #f4f7f6; margin: 0; display: flex; height: 100vh; overflow: hidden; user-select: none; }
-        #debug-console { position: fixed; bottom: 0; right: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: auto; z-index: 9999; pointer-events: none; border-top: 2px solid #0f0; }
+        #debug-console { position: fixed; bottom: 0; right: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: auto; z-index: 9999; pointer-events: none; border-top: 2px solid #0f0; display: none; }
         .menu-toggle-btn { position: absolute; top: 15px; left: 15px; z-index: 100; background: #2c3e50; color: white; border: none; border-radius: 5px; padding: 10px 15px; font-size: 20px; cursor: pointer; display: none; }
         .sidebar { width: 260px; background: #2c3e50; color: white; display: flex; flex-direction: column; overflow-y: auto; z-index: 90; transition: 0.3s; }
         .sidebar-title { padding: 20px; font-size: 22px; font-weight: bold; background: #1a252f; text-align: center; padding-top: 60px; flex-shrink: 0; border-bottom: 1px solid #34495e;}
@@ -30,59 +29,196 @@
         #character-target-div::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #d47e7e; pointer-events: none; }
         #character-target-div::after { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background: #d47e7e; pointer-events: none; }
         .zhuyin-system { display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #333; }
-		.zhuyin-light-tone { font-size: 48px; height: 50px; line-height: 50px; visibility: hidden; text-align: center; }
-		.zhuyin-body-row { display: flex; flex-direction: row; align-items: center; }
-		.zhuyin-symbols { font-size: 40px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 8px; }
-		.zhuyin-side-tone { font-size: 56px; display: flex; align-items: center; justify-content: center; margin-left: 3px; }
+        .zhuyin-light-tone { font-size: 48px; height: 50px; line-height: 50px; visibility: hidden; text-align: center; }
+        .zhuyin-body-row { display: flex; flex-direction: row; align-items: center; }
+        .zhuyin-symbols { font-size: 40px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 8px; }
+        .zhuyin-side-tone { font-size: 56px; display: flex; align-items: center; justify-content: center; margin-left: 3px; }
         .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
         .btn { padding: 10px 20px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
-        .btn-speak { background: #FFB74D; color: white; } .btn-animate { background: #4FC3F7; color: white; } .btn-quiz { background: #66BB6A; color: white; }
+        .btn-speak { background: #FFB74D; color: white; }
+        .btn-animate { background: #4FC3F7; color: white; }
+        .btn-quiz { background: #66BB6A; color: white; }
+        .btn-test { background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; }
         .error-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: red; font-weight: bold; font-size: 20px; background: rgba(255,255,255,0.9); padding: 10px; display: none; text-align: center;}
         @media (max-width: 768px) { .menu-toggle-btn { display: block; } .sidebar { position: absolute; top: 0; left: 0; height: 100%; transform: translateX(-100%); } .sidebar.active { transform: translateX(0); } .nav-btn { display: none; } .current-lesson-info { font-size: 18px; top: 15px; width: 60%; } .btn { padding: 8px 15px; font-size: 16px; } }
+        
+        /* Quiz Mode Styles */
+        .quiz-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .quiz-modal.active { display: flex; }
+        .quiz-setup-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; border-radius: 20px; text-align: center; color: white; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 400px; width: 90%; }
+        .quiz-setup-box h2 { margin: 0 0 25px 0; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .quiz-setup-box label { display: block; margin-bottom: 8px; font-size: 18px; }
+        .quiz-input-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .quiz-input { width: 60px; padding: 12px; font-size: 24px; text-align: center; border: none; border-radius: 10px; background: rgba(255,255,255,0.9); color: #333; font-weight: bold; }
+        .quiz-input:focus { outline: 3px solid #f1c40f; }
+        .quiz-separator { font-size: 28px; font-weight: bold; }
+        .quiz-btn-row { display: flex; gap: 15px; justify-content: center; }
+        .quiz-start-btn { background: #f1c40f; color: #333; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .quiz-start-btn:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(241,196,15,0.5); }
+        .quiz-cancel-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; }
+        .quiz-cancel-btn:hover { background: rgba(255,255,255,0.3); }
+        
+        /* Quiz Game Mode */
+        .quiz-game-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); z-index: 1001; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .quiz-game-container.active { display: flex; }
+        .quiz-header { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-sizing: border-box; }
+        .quiz-progress { color: #f1c40f; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .quiz-exit-btn { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; font-size: 16px; border-radius: 25px; cursor: pointer; }
+        .quiz-exit-btn:hover { background: rgba(255,255,255,0.2); }
+        .quiz-card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; }
+        .quiz-zhuyin-display { margin-bottom: 20px; }
+        .quiz-zhuyin-large { font-size: 60px; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 10px; color: #333; font-weight: bold; }
+        .quiz-tone-light { font-size: 40px; text-align: center; margin-bottom: 5px; }
+        .quiz-tone-side { font-size: 48px; margin-left: 5px; }
+        #quiz-writer-div { border: 4px solid #333; background: linear-gradient(135deg, #fffadd, #fff5cc); border-radius: 12px; position: relative; }
+        #quiz-writer-div::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: rgba(212,126,126,0.5); pointer-events: none; }
+        #quiz-writer-div::after { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 2px; background: rgba(212,126,126,0.5); pointer-events: none; }
+        .quiz-hint-text { margin-top: 15px; color: #888; font-size: 16px; }
+        
+        /* Success Animation */
+        .quiz-success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1002; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .quiz-success-overlay.active { display: flex; }
+        .success-emoji { font-size: 120px; animation: bounce 0.6s ease-in-out infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+        .success-text { color: #f1c40f; font-size: 48px; font-weight: bold; margin-top: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.5); }
+        .success-subtext { color: white; font-size: 24px; margin-top: 10px; }
+        .success-btn { margin-top: 30px; background: #f1c40f; color: #333; border: none; padding: 15px 50px; font-size: 22px; font-weight: bold; border-radius: 50px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="debug-console">V17.0 康軒小一版初始化中...<br></div>
-    <button class="menu-toggle-btn" id="menu-toggle">? 課程選單</button>
+    <div id="debug-console">V18.0 康軒小一國字系統載入中...<br></div>
+    <button class="menu-toggle-btn" id="menu-toggle">☰ 選擇課程</button>
     <div class="overlay" id="overlay"></div>
-    <div class="sidebar" id="sidebar"><div class="sidebar-title">康軒小一國字學習</div></div>
+    <div class="sidebar" id="sidebar"><div class="sidebar-title">康軒小一國字筆順練習</div></div>
     <div class="main-content" id="main-area">
         <div class="current-lesson-info" id="lesson-title"></div>
-        <button class="nav-btn prev-btn" id="btn-prev">?</button>
-        <button class="nav-btn next-btn" id="btn-next">?</button>
+        <button class="nav-btn prev-btn" id="btn-prev">◀</button>
+        <button class="nav-btn next-btn" id="btn-next">▶</button>
         <div class="card-container">
             <div class="character-wrapper">
-                <div id="character-target-div"><div id="error-msg" class="error-message">找不到 字檔資料</div></div>
+                <div id="character-target-div"><div id="error-msg" class="error-message">載入失敗 字庫無資料</div></div>
                 <div class="zhuyin-system" id="zhuyin-box">
                     <div class="zhuyin-light-tone" id="tone-light">˙</div>
                     <div class="zhuyin-body-row"><div class="zhuyin-symbols" id="zhuyin-symbols"></div><div class="zhuyin-side-tone" id="tone-side"></div></div>
                 </div>
             </div>
             <div class="controls">
-                <button id="speak-button" class="btn btn-speak">? 唸出國字</button>
-                <button id="animate-button" class="btn btn-animate">?? 筆順動畫</button>
-                <button id="quiz-button" class="btn btn-quiz">?? 練習書寫</button>
+                <button id="speak-button" class="btn btn-speak">🔊 聽發音</button>
+                <button id="animate-button" class="btn btn-animate">✏️ 筆順動畫</button>
+                <button id="quiz-button" class="btn btn-quiz">📝 練習書寫</button>
+                <button id="test-button" class="btn btn-test">🎯 小測驗</button>
             </div>
             <div class="progress-indicator" id="progress-text"></div>
         </div>
     </div>
 
+    <!-- Quiz Setup Modal -->
+    <div class="quiz-modal" id="quiz-modal">
+        <div class="quiz-setup-box">
+            <h2>🎯 小測驗</h2>
+            <label>請輸入課程範圍</label>
+            <div class="quiz-input-row">
+                <span>第</span>
+                <input type="number" id="quiz-start-lesson" class="quiz-input" value="1" min="1" max="6">
+                <span class="quiz-separator">~</span>
+                <input type="number" id="quiz-end-lesson" class="quiz-input" value="3" min="1" max="6">
+                <span>課</span>
+            </div>
+            <div class="quiz-btn-row">
+                <button class="quiz-cancel-btn" id="quiz-cancel-btn">取消</button>
+                <button class="quiz-start-btn" id="quiz-start-btn">開始測驗 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Game Container -->
+    <div class="quiz-game-container" id="quiz-game-container">
+        <div class="quiz-header">
+            <div class="quiz-progress" id="quiz-game-progress">1 / 5</div>
+            <button class="quiz-exit-btn" id="quiz-exit-btn">✖ 結束測驗</button>
+        </div>
+        <div class="quiz-card">
+            <div class="quiz-zhuyin-display">
+                <div class="quiz-tone-light" id="quiz-tone-light"></div>
+                <div style="display: flex; align-items: center;">
+                    <div class="quiz-zhuyin-large" id="quiz-zhuyin-symbols"></div>
+                    <div class="quiz-tone-side" id="quiz-tone-side"></div>
+                </div>
+            </div>
+            <div id="quiz-writer-div"></div>
+            <div class="quiz-hint-text">請寫出這個注音對應的國字</div>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="quiz-success-overlay" id="quiz-success-overlay">
+        <div class="success-emoji">🎉</div>
+        <div class="success-text">恭喜過關！</div>
+        <div class="success-subtext" id="success-subtext">全部 5 題都答對了！</div>
+        <button class="success-btn" id="success-close-btn">太棒了！ 👍</button>
+    </div>
+
     <script>
         function debugLog(msg) {
             const consoleDiv = document.getElementById('debug-console');
-            consoleDiv.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            consoleDiv.innerHTML += '<div>[' + new Date().toLocaleTimeString() + '] ' + msg + '</div>';
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
-            console.log(`[DEBUG] ${msg}`);
+            console.log('[DEBUG] ' + msg);
         }
 
         // 康軒小一課程
         const lessons = [
-            { title: "第一課 拍拍手", words: [{char: "拍", zhuyin: "ㄆㄞ"}, {char: "手", zhuyin: "ㄕㄡˇ"}, {char: "左", zhuyin: "ㄗㄨㄛˇ"}, {char: "右", zhuyin: "ㄧㄡˋ"}, {char: "你", zhuyin: "ㄋㄧˇ"}, {char: "他", zhuyin: "ㄊㄚ"}, {char: "也", zhuyin: "ㄧㄝˇ"}, {char: "上", zhuyin: "ㄕㄤˋ"}, {char: "下", zhuyin: "ㄒㄧㄚˋ"}] },
-            { title: "第二課 這是誰的?", words: [{char: "這", zhuyin: "ㄓㄜˋ"}, {char: "是", zhuyin: "ㄕˋ"}, {char: "誰", zhuyin: "ㄕㄟˊ"}, {char: "的", zhuyin: "˙ㄉㄜ"}, {char: "我", zhuyin: "ㄨㄛˇ"}, {char: "分", zhuyin: "ㄈㄣ"}, {char: "好", zhuyin: "ㄏㄠˇ"}, {char: "了", zhuyin: "˙ㄌㄜ"}, {char: "啊", zhuyin: "˙ㄚ"}, {char: "多", zhuyin: "ㄉㄨㄛ"}, {char: "個", zhuyin: "˙ㄍㄜ"}] },
-            { title: "第三課 秋千", words: [{char: "秋", zhuyin: "ㄑㄧㄡ"}, {char: "千", zhuyin: "ㄑㄧㄢ"}, {char: "和", zhuyin: "ㄏㄢˋ"}, {char: "玩", zhuyin: "ㄨㄢˊ"}, {char: "陪", zhuyin: "ㄆㄟˊ"}, {char: "高", zhuyin: "ㄍㄠ"}, {char: "山", zhuyin: "ㄕㄢ"}, {char: "到", zhuyin: "ㄉㄠˋ"}, {char: "大", zhuyin: "ㄉㄚˋ"}, {char: "海", zhuyin: "ㄏㄞˇ"}, {char: "朋", zhuyin: "ㄆㄥˊ"}, {char: "友", zhuyin: "ㄧㄡˇ"}, {char: "們", zhuyin: "˙ㄇㄣ"}, {char: "起", zhuyin: "ㄑㄧˇ"}] },
-            { title: "第四課 大個子，小個子", words: [{char: "子", zhuyin: "˙ㄗ"}, {char: "小", zhuyin: "ㄒㄧㄠˇ"}, {char: "課", zhuyin: "ㄎㄜˋ"}, {char: "兩", zhuyin: "ㄌㄧㄤˇ"}, {char: "人", zhuyin: "ㄖㄣˊ"}, {char: "拉", zhuyin: "ㄌㄚ"}, {char: "看", zhuyin: "ㄎㄢˋ"}, {char: "找", zhuyin: "ㄓㄠˇ"}, {char: "隻", zhuyin: "ㄓ"}, {char: "青", zhuyin: "ㄑㄧㄥ"}, {char: "蛙", zhuyin: "ㄨㄚ"}, {char: "開", zhuyin: "ㄎㄞ"}, {char: "心", zhuyin: "ㄒㄧㄣ"}] },
-            { title: "第五課 比一比", words: [{char: "比", zhuyin: "ㄅㄧˇ"}, {char: "門", zhuyin: "ㄇㄣˊ"}, {char: "裡", zhuyin: "ㄌㄧˇ"}, {char: "外", zhuyin: "ㄨㄞˋ"}, {char: "有", zhuyin: "ㄧㄡˇ"}, {char: "什", zhuyin: "ㄕㄜˊ"}, {char: "麼", zhuyin: "˙ㄇㄜ"}, {char: "不", zhuyin: "ㄅㄨˋ"}, {char: "同", zhuyin: "ㄊㄨㄥˊ"}, {char: "早", zhuyin: "ㄗㄠˇ"}, {char: "晚", zhuyin: "ㄨㄢˇ"}, {char: "王", zhuyin: "ㄨㄤˊ"}, {char: "主", zhuyin: "ㄓㄨˇ"}, {char: "又", zhuyin: "ㄧㄡˋ"}] },
-            { title: "第六課 小路", words: [{char: "路", zhuyin: "ㄌㄨˋ"}, {char: "長", zhuyin: "ㄔㄤˊ"}, {char: "白", zhuyin: "ㄅㄞˊ"}, {char: "花", zhuyin: "ㄏㄨㄚ"}, {char: "紅", zhuyin: "ㄏㄨㄥˊ"}, {char: "走", zhuyin: "ㄗㄡˇ"}, {char: "在", zhuyin: "ㄗㄞˋ"}, {char: "向", zhuyin: "ㄒㄧㄤˋ"}, {char: "說", zhuyin: "ㄕㄨㄛ"}, {char: "朵", zhuyin: "ㄉㄨㄛˇ"}, {char: "從", zhuyin: "ㄘㄨㄥˊ"}, {char: "頭", zhuyin: "ㄊㄡˊ"}, {char: "那", zhuyin: "ㄋㄚˋ"}] }
+            { title: "第一課 拍拍手", words: [
+                {char: "拍", zhuyin: "ㄆㄞ"}, {char: "手", zhuyin: "ㄕㄡˇ"}, 
+                {char: "左", zhuyin: "ㄗㄨㄛˇ"}, {char: "右", zhuyin: "ㄧㄡˋ"}, 
+                {char: "你", zhuyin: "ㄋㄧˇ"}, {char: "他", zhuyin: "ㄊㄚ"}, 
+                {char: "也", zhuyin: "ㄧㄝˇ"}, {char: "上", zhuyin: "ㄕㄤˋ"}, 
+                {char: "下", zhuyin: "ㄒㄧㄚˋ"}
+            ]},
+            { title: "第二課 這是誰的?", words: [
+                {char: "這", zhuyin: "ㄓㄜˋ"}, {char: "是", zhuyin: "ㄕˋ"}, 
+                {char: "誰", zhuyin: "ㄕㄟˊ"}, {char: "的", zhuyin: "˙ㄉㄜ"}, 
+                {char: "我", zhuyin: "ㄨㄛˇ"}, {char: "分", zhuyin: "ㄈㄣ"}, 
+                {char: "好", zhuyin: "ㄏㄠˇ"}, {char: "了", zhuyin: "˙ㄌㄜ"}, 
+                {char: "啊", zhuyin: "˙ㄚ"}, {char: "多", zhuyin: "ㄉㄨㄛ"}, 
+                {char: "個", zhuyin: "˙ㄍㄜ"}
+            ]},
+            { title: "第三課 秋千", words: [
+                {char: "秋", zhuyin: "ㄑㄧㄡ"}, {char: "千", zhuyin: "ㄑㄧㄢ"}, 
+                {char: "和", zhuyin: "ㄏㄢˋ"}, {char: "玩", zhuyin: "ㄨㄢˊ"}, 
+                {char: "陪", zhuyin: "ㄆㄟˊ"}, {char: "高", zhuyin: "ㄍㄠ"}, 
+                {char: "山", zhuyin: "ㄕㄢ"}, {char: "到", zhuyin: "ㄉㄠˋ"}, 
+                {char: "大", zhuyin: "ㄉㄚˋ"}, {char: "海", zhuyin: "ㄏㄞˇ"}, 
+                {char: "朋", zhuyin: "ㄆㄥˊ"}, {char: "友", zhuyin: "ㄧㄡˇ"}, 
+                {char: "們", zhuyin: "˙ㄇㄣ"}, {char: "起", zhuyin: "ㄑㄧˇ"}
+            ]},
+            { title: "第四課 大個子，小個子", words: [
+                {char: "子", zhuyin: "˙ㄗ"}, {char: "小", zhuyin: "ㄒㄧㄠˇ"}, 
+                {char: "課", zhuyin: "ㄎㄜˋ"}, {char: "兩", zhuyin: "ㄌㄧㄤˇ"}, 
+                {char: "人", zhuyin: "ㄖㄣˊ"}, {char: "拉", zhuyin: "ㄌㄚ"}, 
+                {char: "看", zhuyin: "ㄎㄢˋ"}, {char: "找", zhuyin: "ㄓㄠˇ"}, 
+                {char: "隻", zhuyin: "ㄓ"}, {char: "青", zhuyin: "ㄑㄧㄥ"}, 
+                {char: "蛙", zhuyin: "ㄨㄚ"}, {char: "開", zhuyin: "ㄎㄞ"}, 
+                {char: "心", zhuyin: "ㄒㄧㄣ"}
+            ]},
+            { title: "第五課 比一比", words: [
+                {char: "比", zhuyin: "ㄅㄧˇ"}, {char: "門", zhuyin: "ㄇㄣˊ"}, 
+                {char: "裡", zhuyin: "ㄌㄧˇ"}, {char: "外", zhuyin: "ㄨㄞˋ"}, 
+                {char: "有", zhuyin: "ㄧㄡˇ"}, {char: "什", zhuyin: "ㄕㄜˊ"}, 
+                {char: "麼", zhuyin: "˙ㄇㄜ"}, {char: "不", zhuyin: "ㄅㄨˋ"}, 
+                {char: "同", zhuyin: "ㄊㄨㄥˊ"}, {char: "早", zhuyin: "ㄗㄠˇ"}, 
+                {char: "晚", zhuyin: "ㄨㄢˇ"}, {char: "王", zhuyin: "ㄨㄤˊ"}, 
+                {char: "主", zhuyin: "ㄓㄨˇ"}, {char: "又", zhuyin: "ㄧㄡˋ"}
+            ]},
+            { title: "第六課 小路", words: [
+                {char: "路", zhuyin: "ㄌㄨˋ"}, {char: "長", zhuyin: "ㄔㄤˊ"}, 
+                {char: "白", zhuyin: "ㄅㄞˊ"}, {char: "花", zhuyin: "ㄏㄨㄚ"}, 
+                {char: "紅", zhuyin: "ㄏㄨㄥˊ"}, {char: "走", zhuyin: "ㄗㄡˇ"}, 
+                {char: "在", zhuyin: "ㄗㄞˋ"}, {char: "向", zhuyin: "ㄒㄧㄤˋ"}, 
+                {char: "說", zhuyin: "ㄕㄨㄛ"}, {char: "朵", zhuyin: "ㄉㄨㄛˇ"}, 
+                {char: "從", zhuyin: "ㄘㄨㄥˊ"}, {char: "頭", zhuyin: "ㄊㄡˊ"}, 
+                {char: "那", zhuyin: "ㄋㄚˋ"}
+            ]}
         ];
 
         let currentLessonIdx = 0;
@@ -96,7 +232,7 @@
 
         function renderSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.innerHTML = '<div class="sidebar-title">康軒小一國字學習</div>';
+            sidebar.innerHTML = '<div class="sidebar-title">康軒小一國字筆順練習</div>';
             lessons.forEach((lesson, lIndex) => {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'lesson-group';
@@ -106,12 +242,12 @@
                 headerBtn.onclick = () => { changeLesson(lIndex, 0); };
                 const gridDiv = document.createElement('div');
                 gridDiv.className = 'word-grid';
-                gridDiv.id = `grid-${lIndex}`;
+                gridDiv.id = 'grid-' + lIndex;
                 lesson.words.forEach((wordObj, wIndex) => {
                     const wordBtn = document.createElement('button');
                     wordBtn.className = 'sidebar-word-btn';
                     wordBtn.innerText = wordObj.char;
-                    wordBtn.id = `btn-${lIndex}-${wIndex}`;
+                    wordBtn.id = 'btn-' + lIndex + '-' + wIndex;
                     wordBtn.onclick = (e) => { e.stopPropagation(); changeLesson(lIndex, wIndex); toggleMenu(); };
                     gridDiv.appendChild(wordBtn);
                 });
@@ -133,21 +269,21 @@
             document.querySelectorAll('.lesson-header').forEach((btn, idx) => idx === currentLessonIdx ? btn.classList.add('active') : btn.classList.remove('active'));
             document.querySelectorAll('.word-grid').forEach((grid, idx) => idx === currentLessonIdx ? grid.classList.add('show') : grid.classList.remove('show'));
             document.querySelectorAll('.sidebar-word-btn').forEach(btn => btn.classList.remove('current'));
-            const activeBtn = document.getElementById(`btn-${currentLessonIdx}-${currentWordIdx}`);
+            const activeBtn = document.getElementById('btn-' + currentLessonIdx + '-' + currentWordIdx);
             if(activeBtn) activeBtn.classList.add('current');
         }
 
         function loadCharacter() {
             const lesson = lessons[currentLessonIdx];
             const word = lesson.words[currentWordIdx];
-            document.getElementById('progress-text').innerText = `${currentWordIdx + 1} / ${lesson.words.length}`;
+            document.getElementById('progress-text').innerText = (currentWordIdx + 1) + ' / ' + lesson.words.length;
             const boxSize = getResponsiveSize();
             document.getElementById('zhuyin-box').style.height = boxSize + 'px';
-            document.getElementById('character-target-div').innerHTML = '<div id="error-msg" class="error-message">找不到 字檔資料</div>';
+            document.getElementById('character-target-div').innerHTML = '<div id="error-msg" class="error-message">載入失敗 字庫無資料</div>';
             document.getElementById('error-msg').style.display = 'none';
 
-            debugLog(`------------------`);
-            debugLog(`開始載入國字: [${word.char}]`);
+            debugLog('------------------');
+            debugLog('正在載入國字: [' + word.char + ']');
             
             writer = HanziWriter.create('character-target-div', word.char, {
                 width: boxSize, height: boxSize, padding: boxSize * 0.08,
@@ -155,27 +291,23 @@
                 showOutline: true, outlineColor: '#ddd',
                 strokeAnimationSpeed: 1, delayBetweenStrokes: 200,
                 highlightOnVariation: true, drawingWidth: boxSize * 0.1,
-				leniency: 2.0, // 非常寬鬆的書寫判定，適合小朋友練習
+                leniency: 2.0,
                 
-                // V17.0 優先使用本地台灣標準字檔
                 charDataLoader: function(char, onComplete) {
-                    // 1. 優先載入本地 data/ 資料夾（台灣標準版）
                     const localUrl = './data/' + char + '.json';
                     
-                    debugLog(`1. 嘗試本地載入: ${localUrl}`);
+                    debugLog('1. 嘗試本地檔案: ' + localUrl);
                     fetch(localUrl)
                     .then(res => {
                         if (!res.ok) throw new Error("Local 404");
                         return res.json();
                     })
                     .then(data => {
-                        debugLog(`? 成功！使用本地台灣標準字檔`);
+                        debugLog('✓ 成功！使用本地台灣標準字檔');
                         onComplete(data);
                     })
                     .catch(err => {
-                        // 2. 本地找不到，嘗試從 CDN 載入（繁體字庫）
-                        debugLog(`本地找不到字檔，嘗試從 CDN 載入...`);
-                        // 先嘗試繁體字庫
+                        debugLog('本地檔案不存在，嘗試 CDN 繁體...');
                         const cdnUrlTraditional = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/' + encodeURIComponent(char) + '.json';
                         fetch(cdnUrlTraditional)
                         .then(res => {
@@ -183,21 +315,20 @@
                             return res.json();
                         })
                         .then(data => {
-                            debugLog(`? 成功從 CDN 載入（繁體字庫）`);
+                            debugLog('✓ 成功從 CDN 繁體字庫載入！');
                             onComplete(data);
                         })
                         .catch(err2 => {
-                            // 最後回退到通用字庫
-                            debugLog(`繁體字庫也找不到，使用通用字庫...`);
+                            debugLog('繁體字庫不存在，使用通用字庫...');
                             const cdnUrlFallback = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + encodeURIComponent(char) + '.json';
                             fetch(cdnUrlFallback)
                             .then(res => res.json())
                             .then(data => {
-                                debugLog(`? 成功從通用字庫載入（可能非台灣標準）`);
+                                debugLog('✓ 成功從通用字庫載入（可能非台灣標準）');
                                 onComplete(data);
                             })
                             .catch(err3 => {
-                                debugLog(`? 完全找不到字檔`);
+                                debugLog('✗ 所有來源都無法載入');
                                 document.getElementById('error-msg').style.display = 'block';
                                 onComplete(null);
                             });
@@ -260,10 +391,228 @@
         };
         document.getElementById('speak-button').onclick = speakWord;
         document.getElementById('animate-button').onclick = () => { speakWord(); writer.cancelQuiz(); writer.animateCharacter(); };
-        document.getElementById('quiz-button').onclick = () => { writer.quiz({ onComplete: () => { speakWord(); setTimeout(() => alert('太棒了！寫得真好！'), 300); }}); };
+        document.getElementById('quiz-button').onclick = () => { writer.quiz({ onComplete: () => { speakWord(); setTimeout(() => alert('很棒喔！寫得很漂亮！'), 300); }}); };
+
+        // ========== Quiz Mode Functions ==========
+        let quizMode = {
+            active: false,
+            words: [],
+            currentIndex: 0,
+            writer: null,
+            correctCount: 0
+        };
+
+        // Open quiz modal
+        document.getElementById('test-button').onclick = function() {
+            document.getElementById('quiz-modal').classList.add('active');
+        };
+
+        // Cancel quiz
+        document.getElementById('quiz-cancel-btn').onclick = function() {
+            document.getElementById('quiz-modal').classList.remove('active');
+        };
+
+        // Start quiz
+        document.getElementById('quiz-start-btn').onclick = function() {
+            const startLesson = parseInt(document.getElementById('quiz-start-lesson').value) - 1;
+            const endLesson = parseInt(document.getElementById('quiz-end-lesson').value) - 1;
+            
+            if (startLesson < 0 || endLesson >= lessons.length || startLesson > endLesson) {
+                alert('課程範圍不正確！請輸入 1~6 之間的數字');
+                return;
+            }
+            
+            // Collect all words from selected lessons
+            let allWords = [];
+            for (let i = startLesson; i <= endLesson; i++) {
+                allWords = allWords.concat(lessons[i].words.map(w => ({...w, lesson: i})));
+            }
+            
+            // Randomly select 5 words
+            quizMode.words = [];
+            const shuffled = allWords.sort(() => Math.random() - 0.5);
+            quizMode.words = shuffled.slice(0, Math.min(5, shuffled.length));
+            quizMode.currentIndex = 0;
+            quizMode.correctCount = 0;
+            quizMode.active = true;
+            
+            document.getElementById('quiz-modal').classList.remove('active');
+            document.getElementById('quiz-game-container').classList.add('active');
+            
+            debugLog('Quiz started with ' + quizMode.words.length + ' words');
+            loadQuizWord();
+        };
+
+        // Exit quiz
+        document.getElementById('quiz-exit-btn').onclick = function() {
+            if (confirm('確定要結束測驗嗎？')) {
+                endQuiz();
+            }
+        };
+
+        // Close success overlay
+        document.getElementById('success-close-btn').onclick = function() {
+            document.getElementById('quiz-success-overlay').classList.remove('active');
+        };
+
+        function endQuiz() {
+            quizMode.active = false;
+            document.getElementById('quiz-game-container').classList.remove('active');
+            if (quizMode.writer) {
+                quizMode.writer = null;
+            }
+        }
+
+        function loadQuizWord() {
+            if (quizMode.currentIndex >= quizMode.words.length) {
+                showQuizSuccess();
+                return;
+            }
+            
+            const word = quizMode.words[quizMode.currentIndex];
+            document.getElementById('quiz-game-progress').innerText = (quizMode.currentIndex + 1) + ' / ' + quizMode.words.length;
+            
+            renderQuizZhuyin(word.zhuyin);
+            
+            const boxSize = Math.min(window.innerWidth * 0.7, 280);
+            document.getElementById('quiz-writer-div').innerHTML = '';
+            document.getElementById('quiz-writer-div').style.width = boxSize + 'px';
+            document.getElementById('quiz-writer-div').style.height = boxSize + 'px';
+            
+            debugLog('Quiz loading: ' + word.char + ' (' + word.zhuyin + ')');
+            
+            quizMode.writer = HanziWriter.create('quiz-writer-div', word.char, {
+                width: boxSize,
+                height: boxSize,
+                padding: boxSize * 0.08,
+                strokeColor: '#333333',
+                radicalColor: '#e91e63',
+                showOutline: false,
+                showCharacter: false,
+                strokeAnimationSpeed: 1,
+                delayBetweenStrokes: 200,
+                highlightOnVariation: true,
+                drawingWidth: boxSize * 0.1,
+                leniency: 2.0,
+                charDataLoader: function(char, onComplete) {
+                    const localUrl = './data/' + char + '.json';
+                    fetch(localUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error("Local 404");
+                        return res.json();
+                    })
+                    .then(data => {
+                        debugLog('Quiz: Local data loaded for ' + char);
+                        onComplete(data);
+                    })
+                    .catch(err => {
+                        const cdnUrl = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/' + encodeURIComponent(char) + '.json';
+                        fetch(cdnUrl)
+                        .then(res => res.json())
+                        .then(data => {
+                            debugLog('Quiz: CDN data loaded for ' + char);
+                            onComplete(data);
+                        })
+                        .catch(err2 => {
+                            debugLog('Quiz: Failed to load ' + char);
+                            onComplete(null);
+                        });
+                    });
+                },
+                onLoadCharDataSuccess: function() {
+                    setTimeout(() => {
+                        quizMode.writer.quiz({
+                            onComplete: function(summaryData) {
+                                debugLog('Quiz word completed: ' + word.char);
+                                quizMode.correctCount++;
+                                
+                                if ('speechSynthesis' in window) {
+                                    const utterance = new SpeechSynthesisUtterance(word.char);
+                                    utterance.lang = 'zh-TW';
+                                    utterance.rate = 0.8;
+                                    window.speechSynthesis.speak(utterance);
+                                }
+                                
+                                setTimeout(() => {
+                                    quizMode.currentIndex++;
+                                    loadQuizWord();
+                                }, 1000);
+                            }
+                        });
+                    }, 300);
+                }
+            });
+        }
+
+        function renderQuizZhuyin(zhuyinStr) {
+            const lightToneDiv = document.getElementById('quiz-tone-light');
+            const symbolsDiv = document.getElementById('quiz-zhuyin-symbols');
+            const sideToneDiv = document.getElementById('quiz-tone-side');
+            
+            lightToneDiv.innerHTML = '';
+            sideToneDiv.innerHTML = '';
+            let symbols = '';
+            
+            if (zhuyinStr.includes('˙')) {
+                lightToneDiv.innerHTML = '˙';
+                symbols = zhuyinStr.replace('˙', '');
+            } else {
+                const lastChar = zhuyinStr.slice(-1);
+                if (['ˊ', 'ˇ', 'ˋ'].includes(lastChar)) {
+                    sideToneDiv.innerHTML = lastChar;
+                    symbols = zhuyinStr.slice(0, -1);
+                } else {
+                    symbols = zhuyinStr;
+                }
+            }
+            symbolsDiv.innerHTML = symbols;
+        }
+
+        function showQuizSuccess() {
+            playSuccessSound();
+            
+            document.getElementById('success-subtext').innerHTML = '全部 ' + quizMode.words.length + ' 題都答對了！';
+            document.getElementById('quiz-success-overlay').classList.add('active');
+            
+            document.getElementById('quiz-game-container').classList.remove('active');
+            quizMode.active = false;
+        }
+
+        function playSuccessSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                const durations = [0.15, 0.15, 0.15, 0.4];
+                let startTime = audioCtx.currentTime;
+                
+                notes.forEach((freq, i) => {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = freq;
+                    
+                    gainNode.gain.setValueAtTime(0.3, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + durations[i]);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + durations[i]);
+                    
+                    startTime += durations[i] * 0.8;
+                });
+                
+                debugLog('Success sound played!');
+            } catch (e) {
+                debugLog('Audio not supported: ' + e.message);
+            }
+        }
 
         window.addEventListener('resize', () => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(loadCharacter, 200); });
-        window.onload = function() { renderSidebar(); changeLesson(0, 0); debugLog('康軒小一版載入完成！'); };
+        window.onload = function() { renderSidebar(); changeLesson(0, 0); debugLog('康軒小一國字系統載入完成！'); };
     </script>
 </body>
 </html>
