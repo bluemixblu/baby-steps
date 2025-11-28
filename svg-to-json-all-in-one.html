@@ -65,13 +65,33 @@
         
         <div id="successMsg" style="display: none;"></div>
         
-        <div class="section-title">Step 3: Copy JSON</div>
+        <div class="section-title">Step 3: Preview & Test</div>
+        <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin: 20px 0;">
+            <div style="text-align: center;">
+                <div style="font-weight: bold; margin-bottom: 10px;">Character Display</div>
+                <div id="charDisplay" style="width: 200px; height: 200px; border: 2px solid #667eea; border-radius: 10px; background: #fffef0;"></div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-weight: bold; margin-bottom: 10px;">Animation</div>
+                <div id="charAnimation" style="width: 200px; height: 200px; border: 2px solid #667eea; border-radius: 10px; background: #fffef0;"></div>
+                <button onclick="playAnimation()" style="margin-top: 10px; padding: 8px 20px; font-size: 14px;">Play Animation</button>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-weight: bold; margin-bottom: 10px;">Writing Practice</div>
+                <div id="charQuiz" style="width: 200px; height: 200px; border: 2px solid #667eea; border-radius: 10px; background: #fffef0;"></div>
+                <button onclick="startQuiz()" style="margin-top: 10px; padding: 8px 20px; font-size: 14px;">Start Practice</button>
+            </div>
+        </div>
+        
+        <div class="section-title">Step 4: Copy JSON</div>
         <textarea id="output" placeholder="Generated JSON will appear here..." readonly></textarea>
         
         <div class="btn-container">
             <button onclick="copyToClipboard()">Copy to Clipboard</button>
         </div>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
 
     <script>
         let svgFiles = [], extractedPaths = [];
@@ -236,47 +256,68 @@
             
             let result;
             
-            // V3.9: Check if this is a "curved" stroke (like hook strokes)
-            // If deltaX is significant relative to deltaY, it has a curve/hook
-            // Use ratio 0.4 as threshold: if deltaX/deltaY > 0.4, it's curved
-            if (deltaY > deltaX * 2.5) {
-                // Pure vertical stroke (like simple vertical line)
-                console.log('  -> Pure Vertical stroke (deltaY > deltaX*2.5)');
+            // Check if it's a left-falling stroke (ºJ): top point is significantly to the right of bottom point
+            // Use threshold of 30 pixels to avoid false positives on vertical strokes
+            const xDiff = points[minYIndex][0] - points[maxYIndex][0];
+            const isLeftFalling = xDiff > 30;
+            console.log('  minY.x:', points[minYIndex][0], 'maxY.x:', points[maxYIndex][0], 'xDiff:', xDiff);
+            console.log('  isLeftFalling (ºJ):', isLeftFalling, '(threshold: 30)');
+            
+            if (isLeftFalling) {
+                // ===== ºJ (LEFT-FALLING STROKE) =====
+                // Writing direction: from top-right (maxX) to bottom-left (minX)
+                console.log('  -> ºJ (Left-falling): maxX to minX');
+                console.log('  maxXIndex:', maxXIndex, 'minXIndex:', minXIndex);
+                
+                if (maxXIndex < minXIndex) {
+                    // maxX comes first, minX comes later - direct slice
+                    console.log('  -> Direct: [' + maxXIndex + ', ' + (minXIndex + 1) + ')');
+                    result = points.slice(maxXIndex, minXIndex + 1);
+                } else {
+                    // Need to wrap around the closed path
+                    console.log('  -> Wrap: [' + maxXIndex + ' to end] + [1 to ' + (minXIndex + 1) + ')');
+                    const part1 = points.slice(maxXIndex);
+                    const part2 = points.slice(1, minXIndex + 1);
+                    result = part1.concat(part2);
+                }
+            } else if (deltaY > deltaX * 2.5) {
+                // ===== PURE VERTICAL STROKE =====
+                console.log('  -> Pure Vertical (deltaY > deltaX*2.5)');
                 if (minYIndex < maxYIndex) {
-                    console.log('  -> slice [' + minYIndex + ', ' + (maxYIndex + 1) + ')');
                     result = points.slice(minYIndex, maxYIndex + 1);
                 } else {
-                    console.log('  -> slice [' + maxYIndex + ', ' + (minYIndex + 1) + ') then REVERSE');
                     result = points.slice(maxYIndex, minYIndex + 1).reverse();
                 }
             } else if (deltaX > deltaY * 2.5) {
-                // Pure horizontal stroke
-                console.log('  -> Pure Horizontal stroke (deltaX > deltaY*2.5)');
+                // ===== PURE HORIZONTAL STROKE =====
+                console.log('  -> Pure Horizontal (deltaX > deltaY*2.5)');
                 if (minXIndex < maxXIndex) {
                     result = points.slice(minXIndex, maxXIndex + 1);
                 } else {
                     result = points.slice(maxXIndex, minXIndex + 1).reverse();
                 }
+            } else if (deltaX >= deltaY) {
+                // ===== CURVED HORIZONTAL (like ¾î) =====
+                console.log('  -> Curved Horizontal: minX to maxX');
+                console.log('  minXIndex:', minXIndex, 'maxXIndex:', maxXIndex);
+                if (minXIndex < maxXIndex) {
+                    result = points.slice(minXIndex, maxXIndex + 1);
+                } else {
+                    const part1 = points.slice(minXIndex);
+                    const part2 = points.slice(1, maxXIndex + 1);
+                    result = part1.concat(part2);
+                }
             } else {
-                // V3.9 NEW: Curved stroke (like vertical-bend-hook)
-                // Take path from start (index 0) to maxX (rightmost point)
-                console.log('  -> V3.9 Curved stroke: from start to maxX');
-                console.log('  -> slice [0, ' + (maxXIndex + 1) + ')');
+                // ===== CURVED VERTICAL (like ½ÝÅs¹_) =====
+                console.log('  -> Curved Vertical: start to maxX');
                 result = points.slice(0, maxXIndex + 1);
                 
-                // Ensure Y is increasing (top to bottom in 540 system)
-                if (result.length >= 2) {
-                    const firstY = result[0][1];
-                    const lastY = result[result.length - 1][1];
-                    if (firstY > lastY) {
-                        console.log('  -> Y decreasing, need to find alternative path');
-                        // Try the other direction: from maxX to end, then from start
-                        // This handles cases where the stroke starts in the middle
-                        const part1 = points.slice(maxXIndex);
-                        const part2 = points.slice(0, 1);
-                        result = part1.concat(part2);
-                        console.log('  -> Alternative: [' + maxXIndex + ' to end] + [0]');
-                    }
+                // If Y is decreasing, we took the wrong half - use alternative
+                if (result.length >= 2 && result[0][1] > result[result.length - 1][1]) {
+                    console.log('  -> Y decreasing, using wrap method');
+                    const part1 = points.slice(maxXIndex);
+                    const part2 = points.slice(1, 1); // Just to close the loop if needed
+                    result = part1;
                 }
             }
             
@@ -378,8 +419,16 @@
             
             const successMsg = document.getElementById('successMsg');
             successMsg.className = 'success';
-            successMsg.innerHTML = '<div style="font-size: 20px; margin-bottom: 10px;">V3.8 JSON Generated!</div><div>Strokes: ' + extractedPaths.length + '</div><div style="color:#ffd700; margin-top:10px;"><strong>Check F12 console for Y-value diagnostics!</strong></div>';
+            successMsg.innerHTML = '<div style="font-size: 20px; margin-bottom: 10px;">V3.9 JSON Generated!</div><div>Strokes: ' + extractedPaths.length + '</div><div style="color:#ffd700; margin-top:10px;"><strong>Preview ready! Check F12 for diagnostics.</strong></div>';
             successMsg.style.display = 'block';
+            
+            // Create preview
+            try {
+                createPreview(json);
+                console.log('Preview created successfully!');
+            } catch (e) {
+                console.error('Preview error:', e);
+            }
         }
         
         function copyToClipboard() {
@@ -396,9 +445,97 @@
                 document.getElementById('radStrokesInput').value = '';
                 document.getElementById('output').value = '';
                 document.getElementById('successMsg').style.display = 'none';
+                document.getElementById('charDisplay').innerHTML = '';
+                document.getElementById('charAnimation').innerHTML = '';
+                document.getElementById('charQuiz').innerHTML = '';
                 fileInput.value = '';
+                currentCharData = null;
+                writerDisplay = null;
+                writerAnimation = null;
+                writerQuiz = null;
+            }
+        }
+        
+        // Preview functionality
+        let currentCharData = null;
+        let writerDisplay = null;
+        let writerAnimation = null;
+        let writerQuiz = null;
+        
+        function createPreview(jsonData) {
+            currentCharData = jsonData;
+            
+            // Clear previous writers
+            document.getElementById('charDisplay').innerHTML = '';
+            document.getElementById('charAnimation').innerHTML = '';
+            document.getElementById('charQuiz').innerHTML = '';
+            
+            // Create display writer
+            writerDisplay = HanziWriter.create('charDisplay', null, {
+                width: 200,
+                height: 200,
+                padding: 10,
+                strokeColor: '#333',
+                radicalColor: '#c87e74',
+                charDataLoader: function(char, onComplete) {
+                    onComplete(currentCharData);
+                }
+            });
+            writerDisplay.setCharacter('test');
+            
+            // Create animation writer
+            writerAnimation = HanziWriter.create('charAnimation', null, {
+                width: 200,
+                height: 200,
+                padding: 10,
+                strokeColor: '#333',
+                radicalColor: '#c87e74',
+                delayBetweenStrokes: 300,
+                charDataLoader: function(char, onComplete) {
+                    onComplete(currentCharData);
+                }
+            });
+            writerAnimation.setCharacter('test');
+            
+            // Create quiz writer
+            writerQuiz = HanziWriter.create('charQuiz', null, {
+                width: 200,
+                height: 200,
+                padding: 10,
+                showCharacter: false,
+                showOutline: true,
+                strokeColor: '#333',
+                radicalColor: '#c87e74',
+                highlightColor: '#38ef7d',
+                drawingColor: '#667eea',
+                charDataLoader: function(char, onComplete) {
+                    onComplete(currentCharData);
+                }
+            });
+            writerQuiz.setCharacter('test');
+        }
+        
+        function playAnimation() {
+            if (writerAnimation) {
+                writerAnimation.animateCharacter();
+            } else {
+                alert('Please generate JSON first!');
+            }
+        }
+        
+        function startQuiz() {
+            if (writerQuiz) {
+                writerQuiz.quiz({
+                    onComplete: function(summaryData) {
+                        console.log('Quiz complete!', summaryData);
+                    }
+                });
+            } else {
+                alert('Please generate JSON first!');
             }
         }
     </script>
 </body>
+</html>
+
 </html>

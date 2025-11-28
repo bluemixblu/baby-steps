@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>åº·è»’å°ä¸€åœ‹å­—ç­†é †å­¸ç¿’ V17.0 (å°ç£æ¨™æº–)</title>
+    <title>åº·è??å°?ä¸????å­?ç­????å­¸ç?? V17.0 (??°ç??æ¨?æº?)</title>
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
     <style>
         body { font-family: "Microsoft JhengHei", "DFKai-SB", "KaiTi", serif; background-color: #f4f7f6; margin: 0; display: flex; height: 100vh; overflow: hidden; user-select: none; }
@@ -40,26 +40,26 @@
     </style>
 </head>
 <body>
-    <div id="debug-console">V17.0 åº·è»’å°ä¸€ç‰ˆåˆå§‹åŒ–ä¸­...<br></div>
-    <button class="menu-toggle-btn" id="menu-toggle">? èª²ç¨‹é¸å–®</button>
+    <div id="debug-console">V17.0 åº·è??å°?ä¸???????å§????ä¸?...<br></div>
+    <button class="menu-toggle-btn" id="menu-toggle">? èª²ç????¸å??</button>
     <div class="overlay" id="overlay"></div>
-    <div class="sidebar" id="sidebar"><div class="sidebar-title">åº·è»’å°ä¸€åœ‹å­—å­¸ç¿’</div></div>
+    <div class="sidebar" id="sidebar"><div class="sidebar-title">åº·è??å°?ä¸????å­?å­¸ç??</div></div>
     <div class="main-content" id="main-area">
         <div class="current-lesson-info" id="lesson-title"></div>
         <button class="nav-btn prev-btn" id="btn-prev">?</button>
         <button class="nav-btn next-btn" id="btn-next">?</button>
         <div class="card-container">
             <div class="character-wrapper">
-                <div id="character-target-div"><div id="error-msg" class="error-message">æ‰¾ä¸åˆ° å­—æª”è³‡æ–™</div></div>
+                <div id="character-target-div"><div id="error-msg" class="error-message">??¾ä????? å­?æª?è³????</div></div>
                 <div class="zhuyin-system" id="zhuyin-box">
-                    <div class="zhuyin-light-tone" id="tone-light">Ë™</div>
+                    <div class="zhuyin-light-tone" id="tone-light">??</div>
                     <div class="zhuyin-body-row"><div class="zhuyin-symbols" id="zhuyin-symbols"></div><div class="zhuyin-side-tone" id="tone-side"></div></div>
                 </div>
             </div>
             <div class="controls">
-                <button id="speak-button" class="btn btn-speak">? å”¸å‡ºåœ‹å­—</button>
-                <button id="animate-button" class="btn btn-animate">?? ç­†é †å‹•ç•«</button>
-                <button id="quiz-button" class="btn btn-quiz">?? ç·´ç¿’æ›¸å¯«</button>
+                <button id="speak-button" class="btn btn-speak">? ??¸å?ºå??å­?</button>
+                <button id="animate-button" class="btn btn-animate">?? ç­??????????</button>
+                <button id="quiz-button" class="btn btn-quiz">?? ç·´ç????¸å¯«</button>
             </div>
             <div class="progress-indicator" id="progress-text"></div>
         </div>
@@ -73,14 +73,14 @@
             console.log(`[DEBUG] ${msg}`);
         }
 
-        // åº·è»’å°ä¸€èª²ç¨‹
+        // åº·è??å°?ä¸?èª²ç??
         const lessons = [
-            { title: "ç¬¬ä¸€èª² æ‹æ‹æ‰‹", words: [{char: "æ‹", zhuyin: "ã„†ã„"}, {char: "æ‰‹", zhuyin: "ã„•ã„¡Ë‡"}, {char: "å·¦", zhuyin: "ã„—ã„¨ã„›Ë‡"}, {char: "å³", zhuyin: "ã„§ã„¡Ë‹"}, {char: "ä½ ", zhuyin: "ã„‹ã„§Ë‡"}, {char: "ä»–", zhuyin: "ã„Šã„š"}, {char: "ä¹Ÿ", zhuyin: "ã„§ã„Ë‡"}, {char: "ä¸Š", zhuyin: "ã„•ã„¤Ë‹"}, {char: "ä¸‹", zhuyin: "ã„’ã„§ã„šË‹"}] },
-            { title: "ç¬¬äºŒèª² é€™æ˜¯èª°çš„?", words: [{char: "é€™", zhuyin: "ã„“ã„œË‹"}, {char: "æ˜¯", zhuyin: "ã„•Ë‹"}, {char: "èª°", zhuyin: "ã„•ã„ŸËŠ"}, {char: "çš„", zhuyin: "Ë™ã„‰ã„œ"}, {char: "æˆ‘", zhuyin: "ã„¨ã„›Ë‡"}, {char: "åˆ†", zhuyin: "ã„ˆã„£"}, {char: "å¥½", zhuyin: "ã„ã„ Ë‡"}, {char: "äº†", zhuyin: "Ë™ã„Œã„œ"}, {char: "å•Š", zhuyin: "Ë™ã„š"}, {char: "å¤š", zhuyin: "ã„‰ã„¨ã„›"}, {char: "å€‹", zhuyin: "Ë™ã„ã„œ"}] },
-            { title: "ç¬¬ä¸‰èª² ç§‹åƒ", words: [{char: "ç§‹", zhuyin: "ã„‘ã„§ã„¡"}, {char: "åƒ", zhuyin: "ã„‘ã„§ã„¢"}, {char: "å’Œ", zhuyin: "ã„ã„¢Ë‹"}, {char: "ç©", zhuyin: "ã„¨ã„¢ËŠ"}, {char: "é™ª", zhuyin: "ã„†ã„ŸËŠ"}, {char: "é«˜", zhuyin: "ã„ã„ "}, {char: "å±±", zhuyin: "ã„•ã„¢"}, {char: "åˆ°", zhuyin: "ã„‰ã„ Ë‹"}, {char: "å¤§", zhuyin: "ã„‰ã„šË‹"}, {char: "æµ·", zhuyin: "ã„ã„Ë‡"}, {char: "æœ‹", zhuyin: "ã„†ã„¥ËŠ"}, {char: "å‹", zhuyin: "ã„§ã„¡Ë‡"}, {char: "å€‘", zhuyin: "Ë™ã„‡ã„£"}, {char: "èµ·", zhuyin: "ã„‘ã„§Ë‡"}] },
-            { title: "ç¬¬å››èª² å¤§å€‹å­ï¼Œå°å€‹å­", words: [{char: "å­", zhuyin: "Ë™ã„—"}, {char: "å°", zhuyin: "ã„’ã„§ã„ Ë‡"}, {char: "èª²", zhuyin: "ã„ã„œË‹"}, {char: "å…©", zhuyin: "ã„Œã„§ã„¤Ë‡"}, {char: "äºº", zhuyin: "ã„–ã„£ËŠ"}, {char: "æ‹‰", zhuyin: "ã„Œã„š"}, {char: "çœ‹", zhuyin: "ã„ã„¢Ë‹"}, {char: "æ‰¾", zhuyin: "ã„“ã„ Ë‡"}, {char: "éš»", zhuyin: "ã„“"}, {char: "é’", zhuyin: "ã„‘ã„§ã„¥"}, {char: "è›™", zhuyin: "ã„¨ã„š"}, {char: "é–‹", zhuyin: "ã„ã„"}, {char: "å¿ƒ", zhuyin: "ã„’ã„§ã„£"}] },
-            { title: "ç¬¬äº”èª² æ¯”ä¸€æ¯”", words: [{char: "æ¯”", zhuyin: "ã„…ã„§Ë‡"}, {char: "é–€", zhuyin: "ã„‡ã„£ËŠ"}, {char: "è£¡", zhuyin: "ã„Œã„§Ë‡"}, {char: "å¤–", zhuyin: "ã„¨ã„Ë‹"}, {char: "æœ‰", zhuyin: "ã„§ã„¡Ë‡"}, {char: "ä»€", zhuyin: "ã„•ã„œËŠ"}, {char: "éº¼", zhuyin: "Ë™ã„‡ã„œ"}, {char: "ä¸", zhuyin: "ã„…ã„¨Ë‹"}, {char: "åŒ", zhuyin: "ã„Šã„¨ã„¥ËŠ"}, {char: "æ—©", zhuyin: "ã„—ã„ Ë‡"}, {char: "æ™š", zhuyin: "ã„¨ã„¢Ë‡"}, {char: "ç‹", zhuyin: "ã„¨ã„¤ËŠ"}, {char: "ä¸»", zhuyin: "ã„“ã„¨Ë‡"}, {char: "åˆ", zhuyin: "ã„§ã„¡Ë‹"}] },
-            { title: "ç¬¬å…­èª² å°è·¯", words: [{char: "è·¯", zhuyin: "ã„Œã„¨Ë‹"}, {char: "é•·", zhuyin: "ã„”ã„¤ËŠ"}, {char: "ç™½", zhuyin: "ã„…ã„ËŠ"}, {char: "èŠ±", zhuyin: "ã„ã„¨ã„š"}, {char: "ç´…", zhuyin: "ã„ã„¨ã„¥ËŠ"}, {char: "èµ°", zhuyin: "ã„—ã„¡Ë‡"}, {char: "åœ¨", zhuyin: "ã„—ã„Ë‹"}, {char: "å‘", zhuyin: "ã„’ã„§ã„¤Ë‹"}, {char: "èªª", zhuyin: "ã„•ã„¨ã„›"}, {char: "æœµ", zhuyin: "ã„‰ã„¨ã„›Ë‡"}, {char: "å¾", zhuyin: "ã„˜ã„¨ã„¥ËŠ"}, {char: "é ­", zhuyin: "ã„Šã„¡ËŠ"}, {char: "é‚£", zhuyin: "ã„‹ã„šË‹"}] }
+            { title: "ç¬¬ä??èª? ?????????", words: [{char: "???", zhuyin: "??????"}, {char: "???", zhuyin: "?????¡Ë?"}, {char: "å·?", zhuyin: "?????¨ã????"}, {char: "???", zhuyin: "??§ã?¡Ë?"}, {char: "ä½?", zhuyin: "?????§Ë?"}, {char: "ä»?", zhuyin: "??????"}, {char: "ä¹?", zhuyin: "??§ã????"}, {char: "ä¸?", zhuyin: "?????¤Ë?"}, {char: "ä¸?", zhuyin: "?????§ã????"}] },
+            { title: "ç¬¬ä??èª? ?????¯èª°????", words: [{char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "?????"}, {char: "èª?", zhuyin: "????????"}, {char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "??¨ã????"}, {char: "???", zhuyin: "??????"}, {char: "å¥?", zhuyin: "????????"}, {char: "äº?", zhuyin: "????????"}, {char: "???", zhuyin: "?????"}, {char: "å¤?", zhuyin: "?????¨ã??"}, {char: "???", zhuyin: "????????"}] },
+            { title: "ç¬¬ä??èª? ç§????", words: [{char: "ç§?", zhuyin: "?????§ã??"}, {char: "???", zhuyin: "?????§ã??"}, {char: "???", zhuyin: "?????¢Ë?"}, {char: "???", zhuyin: "??¨ã?¢Ë?"}, {char: "???", zhuyin: "????????"}, {char: "é«?", zhuyin: "??????"}, {char: "å±?", zhuyin: "??????"}, {char: "???", zhuyin: "????????"}, {char: "å¤?", zhuyin: "????????"}, {char: "æµ?", zhuyin: "????????"}, {char: "???", zhuyin: "?????¥Ë?"}, {char: "???", zhuyin: "??§ã?¡Ë?"}, {char: "???", zhuyin: "????????"}, {char: "èµ?", zhuyin: "?????§Ë?"}] },
+            { title: "ç¬¬å??èª? å¤§å??å­?ï¼?å°????å­?", words: [{char: "å­?", zhuyin: "?????"}, {char: "å°?", zhuyin: "?????§ã????"}, {char: "èª?", zhuyin: "????????"}, {char: "???", zhuyin: "?????§ã?¤Ë?"}, {char: "äº?", zhuyin: "????????"}, {char: "???", zhuyin: "??????"}, {char: "???", zhuyin: "?????¢Ë?"}, {char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "???"}, {char: "???", zhuyin: "?????§ã??"}, {char: "???", zhuyin: "??¨ã??"}, {char: "???", zhuyin: "??????"}, {char: "å¿?", zhuyin: "?????§ã??"}] },
+            { title: "ç¬¬ä??èª? æ¯?ä¸?æ¯?", words: [{char: "æ¯?", zhuyin: "?????§Ë?"}, {char: "???", zhuyin: "????????"}, {char: "è£?", zhuyin: "?????§Ë?"}, {char: "å¤?", zhuyin: "??¨ã????"}, {char: "???", zhuyin: "??§ã?¡Ë?"}, {char: "ä»?", zhuyin: "????????"}, {char: "éº?", zhuyin: "????????"}, {char: "ä¸?", zhuyin: "?????¨Ë?"}, {char: "???", zhuyin: "?????¨ã?¥Ë?"}, {char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "??¨ã?¢Ë?"}, {char: "???", zhuyin: "??¨ã?¤Ë?"}, {char: "ä¸?", zhuyin: "?????¨Ë?"}, {char: "???", zhuyin: "??§ã?¡Ë?"}] },
+            { title: "ç¬¬å?­èª² å°?è·?", words: [{char: "è·?", zhuyin: "?????¨Ë?"}, {char: "???", zhuyin: "?????¤Ë?"}, {char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "?????¨ã??"}, {char: "ç´?", zhuyin: "?????¨ã?¥Ë?"}, {char: "èµ?", zhuyin: "?????¡Ë?"}, {char: "???", zhuyin: "????????"}, {char: "???", zhuyin: "?????§ã?¤Ë?"}, {char: "èª?", zhuyin: "?????¨ã??"}, {char: "???", zhuyin: "?????¨ã????"}, {char: "å¾?", zhuyin: "?????¨ã?¥Ë?"}, {char: "???", zhuyin: "?????¡Ë?"}, {char: "???", zhuyin: "????????"}] }
         ];
 
         let currentLessonIdx = 0;
@@ -94,7 +94,7 @@
 
         function renderSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.innerHTML = '<div class="sidebar-title">åº·è»’å°ä¸€åœ‹å­—å­¸ç¿’</div>';
+            sidebar.innerHTML = '<div class="sidebar-title">åº·è??å°?ä¸????å­?å­¸ç??</div>';
             lessons.forEach((lesson, lIndex) => {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'lesson-group';
@@ -141,11 +141,11 @@
             document.getElementById('progress-text').innerText = `${currentWordIdx + 1} / ${lesson.words.length}`;
             const boxSize = getResponsiveSize();
             document.getElementById('zhuyin-box').style.height = boxSize + 'px';
-            document.getElementById('character-target-div').innerHTML = '<div id="error-msg" class="error-message">æ‰¾ä¸åˆ° å­—æª”è³‡æ–™</div>';
+            document.getElementById('character-target-div').innerHTML = '<div id="error-msg" class="error-message">??¾ä????? å­?æª?è³????</div>';
             document.getElementById('error-msg').style.display = 'none';
 
             debugLog(`------------------`);
-            debugLog(`é–‹å§‹è¼‰å…¥åœ‹å­—: [${word.char}]`);
+            debugLog(`???å§?è¼???¥å??å­?: [${word.char}]`);
             
             writer = HanziWriter.create('character-target-div', word.char, {
                 width: boxSize, height: boxSize, padding: boxSize * 0.08,
@@ -153,26 +153,27 @@
                 showOutline: true, outlineColor: '#ddd',
                 strokeAnimationSpeed: 1, delayBetweenStrokes: 200,
                 highlightOnVariation: true, drawingWidth: boxSize * 0.1,
+                leniency: 2.0, // «D±`¼eÃPªº®Ñ¼g§P©w¡A¾A¦X¤pªB¤Í½m²ß
                 
-                // V17.0 å„ªå…ˆä½¿ç”¨æœ¬åœ°å°ç£æ¨™æº–å­—æª”
+                // V17.0 ??ªå??ä½¿ç?¨æ?¬å?°å?°ç??æ¨?æº?å­?æª?
                 charDataLoader: function(char, onComplete) {
-                    // 1. å„ªå…ˆè¼‰å…¥æœ¬åœ° data/ è³‡æ–™å¤¾ï¼ˆå°ç£æ¨™æº–ç‰ˆï¼‰
+                    // 1. ??ªå??è¼???¥æ?¬å?? data/ è³????å¤¾ï????°ç??æ¨?æº????ï¼?
                     const localUrl = './data/' + char + '.json';
                     
-                    debugLog(`1. å˜—è©¦æœ¬åœ°è¼‰å…¥: ${localUrl}`);
+                    debugLog(`1. ???è©¦æ?¬å?°è?????: ${localUrl}`);
                     fetch(localUrl)
                     .then(res => {
                         if (!res.ok) throw new Error("Local 404");
                         return res.json();
                     })
                     .then(data => {
-                        debugLog(`? æˆåŠŸï¼ä½¿ç”¨æœ¬åœ°å°ç£æ¨™æº–å­—æª”`);
+                        debugLog(`? ??????ï¼?ä½¿ç?¨æ?¬å?°å?°ç??æ¨?æº?å­?æª?`);
                         onComplete(data);
                     })
                     .catch(err => {
-                        // 2. æœ¬åœ°æ‰¾ä¸åˆ°ï¼Œå˜—è©¦å¾ CDN è¼‰å…¥ï¼ˆç¹é«”å­—åº«ï¼‰
-                        debugLog(`æœ¬åœ°æ‰¾ä¸åˆ°å­—æª”ï¼Œå˜—è©¦å¾ CDN è¼‰å…¥...`);
-                        // å…ˆå˜—è©¦ç¹é«”å­—åº«
+                        // 2. ??¬å?°æ?¾ä????°ï?????è©¦å?? CDN è¼???¥ï??ç¹?é«?å­?åº«ï??
+                        debugLog(`??¬å?°æ?¾ä????°å??æª?ï¼????è©¦å?? CDN è¼????...`);
+                        // ??????è©¦ç??é«?å­?åº?
                         const cdnUrlTraditional = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/' + encodeURIComponent(char) + '.json';
                         fetch(cdnUrlTraditional)
                         .then(res => {
@@ -180,21 +181,21 @@
                             return res.json();
                         })
                         .then(data => {
-                            debugLog(`? æˆåŠŸå¾ CDN è¼‰å…¥ï¼ˆç¹é«”å­—åº«ï¼‰`);
+                            debugLog(`? ??????å¾? CDN è¼???¥ï??ç¹?é«?å­?åº«ï??`);
                             onComplete(data);
                         })
                         .catch(err2 => {
-                            // æœ€å¾Œå›é€€åˆ°é€šç”¨å­—åº«
-                            debugLog(`ç¹é«”å­—åº«ä¹Ÿæ‰¾ä¸åˆ°ï¼Œä½¿ç”¨é€šç”¨å­—åº«...`);
+                            // ???å¾?????????°é????¨å??åº?
+                            debugLog(`ç¹?é«?å­?åº«ä????¾ä????°ï??ä½¿ç?¨é????¨å??åº?...`);
                             const cdnUrlFallback = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + encodeURIComponent(char) + '.json';
                             fetch(cdnUrlFallback)
                             .then(res => res.json())
                             .then(data => {
-                                debugLog(`? æˆåŠŸå¾é€šç”¨å­—åº«è¼‰å…¥ï¼ˆå¯èƒ½éå°ç£æ¨™æº–ï¼‰`);
+                                debugLog(`? ??????å¾??????¨å??åº«è????¥ï????¯è?½é????°ç??æ¨?æº?ï¼?`);
                                 onComplete(data);
                             })
                             .catch(err3 => {
-                                debugLog(`? å®Œå…¨æ‰¾ä¸åˆ°å­—æª”`);
+                                debugLog(`? å®???¨æ?¾ä????°å??æª?`);
                                 document.getElementById('error-msg').style.display = 'block';
                                 onComplete(null);
                             });
@@ -215,12 +216,12 @@
             sideToneDiv.style.visibility = 'hidden';
             sideToneDiv.innerHTML = '';
             let symbols = '';
-            if (zhuyinStr.includes('Ë™')) {
+            if (zhuyinStr.includes('??')) {
                 lightToneDiv.style.visibility = 'visible';
-                symbols = zhuyinStr.replace('Ë™', '');
+                symbols = zhuyinStr.replace('??', '');
             } else {
                 const lastChar = zhuyinStr.slice(-1);
-                if (['ËŠ', 'Ë‡', 'Ë‹'].includes(lastChar)) {
+                if (['??', '??', '??'].includes(lastChar)) {
                     sideToneDiv.innerHTML = lastChar;
                     sideToneDiv.style.visibility = 'visible';
                     symbols = zhuyinStr.slice(0, -1);
@@ -253,14 +254,14 @@
         document.getElementById('btn-prev').onclick = () => { if(currentWordIdx > 0) changeLesson(currentLessonIdx, currentWordIdx - 1); };
         document.getElementById('btn-next').onclick = () => { 
             if(currentWordIdx < lessons[currentLessonIdx].words.length - 1) changeLesson(currentLessonIdx, currentWordIdx + 1);
-            else if(currentLessonIdx < lessons.length - 1 && confirm("å‰å¾€ä¸‹ä¸€èª²å—ï¼Ÿ")) changeLesson(currentLessonIdx + 1, 0);
+            else if(currentLessonIdx < lessons.length - 1 && confirm("???å¾?ä¸?ä¸?èª²å??ï¼?")) changeLesson(currentLessonIdx + 1, 0);
         };
         document.getElementById('speak-button').onclick = speakWord;
         document.getElementById('animate-button').onclick = () => { speakWord(); writer.cancelQuiz(); writer.animateCharacter(); };
-        document.getElementById('quiz-button').onclick = () => { writer.quiz({ onComplete: () => { speakWord(); setTimeout(() => alert('å¤ªæ£’äº†ï¼å¯«å¾—çœŸå¥½ï¼'), 300); }}); };
+        document.getElementById('quiz-button').onclick = () => { writer.quiz({ onComplete: () => { speakWord(); setTimeout(() => alert('å¤ªæ??äº?ï¼?å¯«å?????å¥½ï??'), 300); }}); };
 
         window.addEventListener('resize', () => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(loadCharacter, 200); });
-        window.onload = function() { renderSidebar(); changeLesson(0, 0); debugLog('åº·è»’å°ä¸€ç‰ˆè¼‰å…¥å®Œæˆï¼'); };
+        window.onload = function() { renderSidebar(); changeLesson(0, 0); debugLog('åº·è??å°?ä¸????è¼???¥å?????ï¼?'); };
     </script>
 </body>
 </html>
