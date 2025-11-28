@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG to hanzi-writer JSON V3.8</title>
+    <title>SVG to hanzi-writer JSON V3.9</title>
     <style>
         body { font-family: "Microsoft JhengHei", Arial, sans-serif; max-width: 1400px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
@@ -30,14 +30,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>SVG to hanzi-writer JSON V3.8</h1>
-        <div class="subtitle">V3.8 Fix: Closed path slice logic corrected</div>
+        <h1>SVG to hanzi-writer JSON V3.9</h1>
+        <div class="subtitle">V3.9 Fix: Curved strokes (hooks) now included in median</div>
         
         <div class="info-box">
-            <strong>V3.8 Key Fix:</strong>
+            <strong>V3.9 Key Fix:</strong>
             <div style="margin-top: 10px; line-height: 1.8;">
-                When minYIndex > maxYIndex: slice(maxYIndex, minYIndex+1).reverse()<br>
-                Result: Correct Y-value sequence (decreasing = top to bottom in 900 system)<br>
+                For curved strokes (like vertical-bend-hook): use maxX method<br>
+                Takes path from start to rightmost point (includes the hook!)<br>
                 <strong style="color: #ffd700;">Press F12 to view diagnostic logs!</strong>
             </div>
         </div>
@@ -212,55 +212,70 @@
             return distance < 10;
         }
         
-        // V3.8 KEY FIX: Correct handling of closed paths
-        // In 540 system: Y small = top, Y large = bottom
-        // For vertical strokes (top to bottom): Y should increase in 540 system
+        // V3.9 FIX: Better handling of complex closed paths (e.g., hooks)
+        // For strokes with curves/hooks, use maxX method instead of minY/maxY
         function simplifyClosedPath(points) {
             console.log('  [Closed Path] Original points:', points.length);
             
-            // Find min and max Y indices
-            let maxYIndex = 0, minYIndex = 0;
+            // Find min/max indices for both X and Y
+            let maxYIndex = 0, minYIndex = 0, maxXIndex = 0, minXIndex = 0;
             for (let i = 1; i < points.length; i++) {
                 if (points[i][1] > points[maxYIndex][1]) maxYIndex = i;
                 if (points[i][1] < points[minYIndex][1]) minYIndex = i;
+                if (points[i][0] > points[maxXIndex][0]) maxXIndex = i;
+                if (points[i][0] < points[minXIndex][0]) minXIndex = i;
             }
             
             console.log('  minY (top):', 'index=' + minYIndex, 'coord=(' + points[minYIndex][0] + ',' + points[minYIndex][1] + ')');
             console.log('  maxY (bottom):', 'index=' + maxYIndex, 'coord=(' + points[maxYIndex][0] + ',' + points[maxYIndex][1] + ')');
+            console.log('  maxX (right):', 'index=' + maxXIndex, 'coord=(' + points[maxXIndex][0] + ',' + points[maxXIndex][1] + ')');
             
             const deltaX = Math.abs(points[maxYIndex][0] - points[minYIndex][0]);
             const deltaY = Math.abs(points[maxYIndex][1] - points[minYIndex][1]);
-            console.log('  deltaX:', deltaX, 'deltaY:', deltaY);
+            console.log('  deltaX:', deltaX, 'deltaY:', deltaY, 'ratio:', (deltaX/deltaY).toFixed(2));
             
             let result;
-            if (deltaY > deltaX * 1.5) {
-                // Vertical stroke: need Y increasing (top to bottom in 540 system)
-                console.log('  -> Vertical stroke');
+            
+            // V3.9: Check if this is a "curved" stroke (like hook strokes)
+            // If deltaX is significant relative to deltaY, it has a curve/hook
+            if (deltaY > deltaX * 2) {
+                // Pure vertical stroke (like simple vertical line)
+                console.log('  -> Pure Vertical stroke (deltaY > deltaX*2)');
                 if (minYIndex < maxYIndex) {
-                    // minY comes before maxY - just slice normally
                     console.log('  -> slice [' + minYIndex + ', ' + (maxYIndex + 1) + ')');
                     result = points.slice(minYIndex, maxYIndex + 1);
                 } else {
-                    // V3.8 FIX: minY comes AFTER maxY in the path
-                    // Path goes: start -> maxY (bottom) -> minY (top) -> back to start
-                    // We need: minY -> maxY (top to bottom)
-                    // So take [maxY, minY] and REVERSE it
-                    console.log('  -> V3.8 FIX: slice [' + maxYIndex + ', ' + (minYIndex + 1) + ') then REVERSE');
+                    console.log('  -> slice [' + maxYIndex + ', ' + (minYIndex + 1) + ') then REVERSE');
                     result = points.slice(maxYIndex, minYIndex + 1).reverse();
                 }
-            } else {
-                // Horizontal stroke: need X increasing (left to right)
-                console.log('  -> Horizontal stroke');
-                let minXIndex = 0, maxXIndex = 0;
-                for (let i = 1; i < points.length; i++) {
-                    if (points[i][0] < points[minXIndex][0]) minXIndex = i;
-                    if (points[i][0] > points[maxXIndex][0]) maxXIndex = i;
-                }
+            } else if (deltaX > deltaY * 2) {
+                // Pure horizontal stroke
+                console.log('  -> Pure Horizontal stroke (deltaX > deltaY*2)');
                 if (minXIndex < maxXIndex) {
                     result = points.slice(minXIndex, maxXIndex + 1);
                 } else {
-                    // V3.8 FIX: Same logic for horizontal
                     result = points.slice(maxXIndex, minXIndex + 1).reverse();
+                }
+            } else {
+                // V3.9 NEW: Curved stroke (like vertical-bend-hook)
+                // Take path from start (index 0) to maxX (rightmost point)
+                console.log('  -> V3.9 Curved stroke: from start to maxX');
+                console.log('  -> slice [0, ' + (maxXIndex + 1) + ')');
+                result = points.slice(0, maxXIndex + 1);
+                
+                // Ensure Y is increasing (top to bottom in 540 system)
+                if (result.length >= 2) {
+                    const firstY = result[0][1];
+                    const lastY = result[result.length - 1][1];
+                    if (firstY > lastY) {
+                        console.log('  -> Y decreasing, need to find alternative path');
+                        // Try the other direction: from maxX to end, then from start
+                        // This handles cases where the stroke starts in the middle
+                        const part1 = points.slice(maxXIndex);
+                        const part2 = points.slice(0, 1);
+                        result = part1.concat(part2);
+                        console.log('  -> Alternative: [' + maxXIndex + ' to end] + [0]');
+                    }
                 }
             }
             
@@ -337,7 +352,7 @@
             if (extractedPaths.length === 0) { alert('Please upload SVG files first!'); return; }
             
             console.clear();
-            console.log('========== V3.8 JSON Generation ==========');
+            console.log('========== V3.9 JSON Generation ==========');
             console.log('Total strokes:', extractedPaths.length);
             
             const transformedStrokes = extractedPaths.map(path => transformPath(path));
