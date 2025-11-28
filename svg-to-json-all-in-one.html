@@ -238,9 +238,10 @@
             
             // V3.9: Check if this is a "curved" stroke (like hook strokes)
             // If deltaX is significant relative to deltaY, it has a curve/hook
-            if (deltaY > deltaX * 2) {
+            // Use ratio 0.4 as threshold: if deltaX/deltaY > 0.4, it's curved
+            if (deltaY > deltaX * 2.5) {
                 // Pure vertical stroke (like simple vertical line)
-                console.log('  -> Pure Vertical stroke (deltaY > deltaX*2)');
+                console.log('  -> Pure Vertical stroke (deltaY > deltaX*2.5)');
                 if (minYIndex < maxYIndex) {
                     console.log('  -> slice [' + minYIndex + ', ' + (maxYIndex + 1) + ')');
                     result = points.slice(minYIndex, maxYIndex + 1);
@@ -248,9 +249,9 @@
                     console.log('  -> slice [' + maxYIndex + ', ' + (minYIndex + 1) + ') then REVERSE');
                     result = points.slice(maxYIndex, minYIndex + 1).reverse();
                 }
-            } else if (deltaX > deltaY * 2) {
+            } else if (deltaX > deltaY * 2.5) {
                 // Pure horizontal stroke
-                console.log('  -> Pure Horizontal stroke (deltaX > deltaY*2)');
+                console.log('  -> Pure Horizontal stroke (deltaX > deltaY*2.5)');
                 if (minXIndex < maxXIndex) {
                     result = points.slice(minXIndex, maxXIndex + 1);
                 } else {
