@@ -614,7 +614,7 @@
                 <div class="menu-card-desc">乘法表複習與測驗</div>
             </div>
         </div>
-        <div class="version-tag">V20.0</div>
+        <div class="version-tag">V20.1</div>
     </div>
     
     <!-- ===== 國字模組 ===== -->
@@ -1310,22 +1310,33 @@
                 return;
             }
             
-            const word = fillBlankQuiz.words[fillBlankQuiz.currentIdx];
-            fillBlankQuiz.currentWord = word;
+            const phrase = fillBlankQuiz.words[fillBlankQuiz.currentIdx];
+            fillBlankQuiz.currentWord = phrase;
             
-            // 生成填空題（隨機隱藏2-3個連續字母）
-            const letters = word.replace(/\s/g, '').split('');
-            const hideCount = Math.min(3, Math.floor(letters.length / 2));
-            const startIdx = Math.floor(Math.random() * (letters.length - hideCount));
+            // 計算可用於填空的字母位置（排除空格）
+            let letterPositions = [];
+            for (let i = 0; i < phrase.length; i++) {
+                if (phrase[i] !== ' ') {
+                    letterPositions.push(i);
+                }
+            }
             
+            // 隨機選擇 2-3 個不連續的位置來填空
+            const hideCount = Math.min(3, Math.max(2, Math.floor(letterPositions.length / 3)));
+            const shuffled = letterPositions.sort(() => Math.random() - 0.5);
+            const hidePositions = shuffled.slice(0, hideCount).sort((a, b) => a - b);
+            
+            // 生成顯示文字和答案
             let display = '';
             let blanks = '';
-            for (let i = 0; i < letters.length; i++) {
-                if (i >= startIdx && i < startIdx + hideCount) {
+            for (let i = 0; i < phrase.length; i++) {
+                if (phrase[i] === ' ') {
+                    display += ' ';
+                } else if (hidePositions.includes(i)) {
                     display += '_';
-                    blanks += letters[i];
+                    blanks += phrase[i];
                 } else {
-                    display += letters[i].toUpperCase();
+                    display += phrase[i].toUpperCase();
                 }
             }
             
@@ -1333,6 +1344,7 @@
             document.getElementById('fill-blank-display').innerText = display;
             document.getElementById('esl-fillblank-progress').innerText = (fillBlankQuiz.currentIdx + 1) + ' / ' + fillBlankQuiz.words.length;
             document.getElementById('fill-blank-input').value = '';
+            document.getElementById('fill-blank-input').setAttribute('maxlength', hideCount);
             document.getElementById('fill-blank-input').className = 'fill-blank-input';
             document.getElementById('fill-blank-feedback').innerText = '';
             
@@ -1421,21 +1433,20 @@
             
             closeMathQuizModal();
             
-            // 生成範圍內的測驗題目
+            // 生成範圍內的測驗題目（固定5題）
             mathState.quizQuestions = [];
             mathState.quizIdx = 0;
             mathState.score = 0;
             
-            // 從範圍內的數字各取題目
+            // 從範圍內的數字生成所有可能的題目
+            let allQuestions = [];
             for (let num = start; num <= end; num++) {
-                const multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
-                // 每個數字取2題
-                for (let i = 0; i < 2; i++) {
-                    mathState.quizQuestions.push({ a: num, b: multipliers[i] });
+                for (let m = 1; m <= 9; m++) {
+                    allQuestions.push({ a: num, b: m });
                 }
             }
-            // 打亂順序，取最多10題
-            mathState.quizQuestions = mathState.quizQuestions.sort(() => Math.random() - 0.5).slice(0, 10);
+            // 打亂順序，取5題
+            mathState.quizQuestions = allQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
             
             renderMathQuiz();
         }
