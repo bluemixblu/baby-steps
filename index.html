@@ -136,6 +136,7 @@
             flex: 1;
         }
         .sidebar { width: 260px; min-width: 260px; background: #2c3e50; color: white; display: flex; flex-direction: column; overflow-y: auto; z-index: 90; transition: 0.3s; height: calc(100vh - 60px); flex-shrink: 0; }
+        .sidebar-quiz-btn { width: calc(100% - 20px); margin: 10px; margin-top: auto; padding: 15px; background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
         .sidebar-title { padding: 20px; font-size: 20px; font-weight: bold; background: #1a252f; text-align: center; flex-shrink: 0; border-bottom: 1px solid #34495e;}
         .lesson-header { width: 100%; padding: 15px 20px; border: none; background: none; color: #ecf0f1; text-align: left; font-size: 18px; cursor: pointer; border-bottom: 1px solid #34495e; }
         .word-grid { display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; background: #233140; }
@@ -235,6 +236,8 @@
             height: calc(100vh - 60px);
             overflow-y: auto;
             flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
         }
         .esl-sidebar-title {
             padding: 20px;
@@ -356,6 +359,49 @@
             margin-bottom: 20px;
             min-height: 30px;
         }
+        .esl-quiz-mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .esl-quiz-mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #2196f3;
+            background: white;
+            color: #2196f3;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .esl-quiz-mode-btn.active {
+            background: #2196f3;
+            color: white;
+        }
+        .fill-blank-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .fill-blank-input {
+            width: 150px;
+            padding: 12px;
+            font-size: 28px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            font-family: monospace;
+            letter-spacing: 4px;
+        }
+        .fill-blank-input:focus {
+            outline: none;
+            border-color: #2196f3;
+        }
         
         @media (max-width: 768px) {
             .esl-sidebar {
@@ -373,26 +419,61 @@
         
         /* ===== 99乘法表模組 ===== */
         .math-module {
-            padding-top: 80px;
+            margin-top: 60px;
             width: 100%;
-            min-height: calc(100vh - 60px);
+            height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: row;
+        }
+        .math-sidebar {
+            width: 120px;
+            min-width: 120px;
+            background: #388e3c;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .math-sidebar-title {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #2e7d32;
+            color: white;
+            text-align: center;
+        }
+        .math-num-btn {
+            padding: 15px;
+            border: none;
+            background: none;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .math-num-btn:hover, .math-num-btn.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .math-main {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            padding-bottom: 40px;
+            padding: 30px;
+            overflow-y: auto;
         }
         .math-mode-selector {
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
             justify-content: center;
         }
         .math-mode-btn {
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 12px 25px;
+            font-size: 16px;
             border: 3px solid #4caf50;
             background: white;
             color: #4caf50;
@@ -408,11 +489,25 @@
         .math-card {
             background: white;
             border-radius: 25px;
-            padding: 40px;
+            padding: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
+        }
+        .math-single-table {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .math-single-row {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 10px;
         }
         .math-table {
             display: grid;
@@ -430,6 +525,19 @@
         .math-table-cell.header {
             background: #4caf50;
             color: white;
+        }
+        @media (max-width: 768px) {
+            .math-sidebar {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                height: calc(100% - 60px);
+                transform: translateX(-100%);
+                z-index: 95;
+            }
+            .math-sidebar.active {
+                transform: translateX(0);
+            }
         }
         .math-question {
             font-size: 48px;
@@ -506,7 +614,7 @@
                 <div class="menu-card-desc">乘法表複習與測驗</div>
             </div>
         </div>
-        <div class="version-tag">V19.0</div>
+        <div class="version-tag">V20.0</div>
     </div>
     
     <!-- ===== 國字模組 ===== -->
@@ -535,7 +643,6 @@
                         <button id="speak-button" class="btn btn-speak">🔊 聽發音</button>
                         <button id="animate-button" class="btn btn-animate">✏️ 筆順動畫</button>
                         <button id="quiz-button" class="btn btn-quiz">📝 練習書寫</button>
-                        <button id="test-button" class="btn btn-test">🎯 小測驗</button>
                     </div>
                     <div class="progress-indicator" id="progress-text"></div>
                 </div>
@@ -608,14 +715,36 @@
                         <button class="esl-btn esl-btn-speak" onclick="speakEnglish()">🔊 聽發音</button>
                         <button class="esl-btn esl-btn-prev" onclick="eslPrev()">◀ 上一個</button>
                         <button class="esl-btn esl-btn-next" onclick="eslNext()">下一個 ▶</button>
-                        <button class="esl-btn esl-btn-quiz" onclick="startEslQuiz()">🎯 小測驗</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- ESL 測驗 -->
+    <!-- ESL 測驗設定 -->
+    <div class="quiz-modal" id="esl-quiz-modal">
+        <div class="quiz-setup-box" style="background: linear-gradient(135deg, #1565c0, #0d47a1);">
+            <h2>🔤 ESL 小測驗</h2>
+            <label>請輸入課程範圍</label>
+            <div class="quiz-input-row">
+                <span>Lesson</span>
+                <input type="number" id="esl-quiz-start" class="quiz-input" value="1" min="1" max="5">
+                <span class="quiz-separator">~</span>
+                <input type="number" id="esl-quiz-end" class="quiz-input" value="3" min="1" max="5">
+            </div>
+            <label style="margin-top:15px;">選擇測驗模式</label>
+            <div style="display:flex;gap:10px;justify-content:center;margin:15px 0;">
+                <button class="esl-btn" id="esl-mode-spelling" style="padding:10px 20px;background:#E91E63;color:white;" onclick="selectEslMode('spelling')">✍️ 拼寫</button>
+                <button class="esl-btn" id="esl-mode-fillblank" style="padding:10px 20px;background:rgba(255,255,255,0.2);color:white;border:2px solid white;" onclick="selectEslMode('fillblank')">🔤 填空</button>
+            </div>
+            <div class="quiz-btn-row">
+                <button class="quiz-cancel-btn" onclick="closeEslQuizModal()">取消</button>
+                <button class="quiz-start-btn" onclick="startEslQuizWithRange()">開始測驗 🚀</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ESL 拼寫測驗 -->
     <div class="esl-quiz-container" id="esl-quiz-container">
         <div class="quiz-header">
             <div class="quiz-progress" id="esl-quiz-progress">1 / 5</div>
@@ -630,20 +759,70 @@
         </div>
     </div>
     
+    <!-- ESL 填空測驗 -->
+    <div class="esl-quiz-container" id="esl-fillblank-container">
+        <div class="quiz-header">
+            <div class="quiz-progress" id="esl-fillblank-progress">1 / 5</div>
+            <button class="quiz-exit-btn" onclick="endFillBlankQuiz()">✖ 結束</button>
+        </div>
+        <div class="esl-quiz-card">
+            <div class="esl-quiz-question">🔊 聽發音，填入缺少的字母</div>
+            <button class="esl-btn esl-btn-speak" onclick="speakFillBlankWord()" style="margin-bottom:20px;">🔊 再聽一次</button>
+            <div class="fill-blank-display" id="fill-blank-display">AP__E</div>
+            <input type="text" class="fill-blank-input" id="fill-blank-input" placeholder="??" autocomplete="off" maxlength="10">
+            <div class="esl-quiz-feedback" id="fill-blank-feedback"></div>
+            <button class="esl-btn esl-btn-next" onclick="checkFillBlankAnswer()">確認答案 ✓</button>
+        </div>
+    </div>
+    
     <!-- ===== 99乘法表模組 ===== -->
     <div class="module-container" id="math-module">
         <div class="top-nav">
             <button class="back-btn" onclick="showHome()">←</button>
             <div class="nav-title">🔢 99 乘法表</div>
         </div>
+        <button class="menu-toggle-btn" id="math-menu-toggle" onclick="toggleMathSidebar()">☰ 選擇</button>
+        <div class="overlay" id="math-overlay" onclick="toggleMathSidebar()"></div>
         <div class="math-module">
-            <div class="math-mode-selector">
-                <button class="math-mode-btn active" onclick="setMathMode('table')">📋 複習表格</button>
-                <button class="math-mode-btn" onclick="setMathMode('practice')">✏️ 練習題目</button>
-                <button class="math-mode-btn" onclick="setMathMode('quiz')">🎯 小測驗</button>
+            <div class="math-sidebar" id="math-sidebar">
+                <div class="math-sidebar-title">選擇數字</div>
+                <button class="math-num-btn active" onclick="selectMathNum(1)">1 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(2)">2 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(3)">3 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(4)">4 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(5)">5 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(6)">6 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(7)">7 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(8)">8 的乘法</button>
+                <button class="math-num-btn" onclick="selectMathNum(9)">9 的乘法</button>
+                <button class="sidebar-quiz-btn" style="background:linear-gradient(135deg,#4caf50,#2e7d32);margin-top:auto;" onclick="openMathQuizModal()">🎯 小測驗</button>
             </div>
-            <div class="math-card" id="math-card">
-                <!-- 動態內容 -->
+            <div class="math-main">
+                <div class="math-mode-selector">
+                    <button class="math-mode-btn active" id="math-mode-table" onclick="setMathMode('table')">📋 複習表格</button>
+                    <button class="math-mode-btn" id="math-mode-practice" onclick="setMathMode('practice')">✏️ 練習題目</button>
+                </div>
+                <div class="math-card" id="math-card">
+                    <!-- 動態內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 數學測驗設定 -->
+    <div class="quiz-modal" id="math-quiz-modal">
+        <div class="quiz-setup-box" style="background: linear-gradient(135deg, #388e3c, #2e7d32);">
+            <h2>🔢 99乘法表 小測驗</h2>
+            <label>請輸入測驗範圍</label>
+            <div class="quiz-input-row">
+                <input type="number" id="math-quiz-start" class="quiz-input" value="1" min="1" max="9">
+                <span class="quiz-separator">~</span>
+                <input type="number" id="math-quiz-end" class="quiz-input" value="9" min="1" max="9">
+                <span>的乘法</span>
+            </div>
+            <div class="quiz-btn-row">
+                <button class="quiz-cancel-btn" onclick="closeMathQuizModal()">取消</button>
+                <button class="quiz-start-btn" onclick="startMathQuizWithRange()">開始測驗 🚀</button>
             </div>
         </div>
     </div>
@@ -762,6 +941,12 @@
                 groupDiv.appendChild(gridDiv);
                 sidebar.appendChild(groupDiv);
             });
+            // 添加小測驗按鈕到底部
+            const quizBtn = document.createElement('button');
+            quizBtn.className = 'sidebar-quiz-btn';
+            quizBtn.innerHTML = '🎯 小測驗';
+            quizBtn.onclick = () => { document.getElementById('quiz-modal').classList.add('active'); toggleChineseMenu(); };
+            sidebar.appendChild(quizBtn);
         }
 
         function changeLesson(lIndex, wIndex) {
@@ -866,16 +1051,20 @@
         // 國字小測驗
         let chineseQuizMode = { active: false, words: [], currentIndex: 0, writer: null };
 
-        document.getElementById('test-button').onclick = () => document.getElementById('quiz-modal').classList.add('active');
         document.getElementById('quiz-cancel-btn').onclick = () => document.getElementById('quiz-modal').classList.remove('active');
         document.getElementById('quiz-start-btn').onclick = startChineseQuiz;
         document.getElementById('quiz-exit-btn').onclick = () => { if(confirm('結束測驗？')) endChineseQuiz(); };
         document.getElementById('success-close-btn').onclick = () => document.getElementById('quiz-success-overlay').classList.remove('active');
 
         function startChineseQuiz() {
-            const start = parseInt(document.getElementById('quiz-start-lesson').value) - 1;
-            const end = parseInt(document.getElementById('quiz-end-lesson').value) - 1;
-            if (start < 0 || end >= chineseLessons.length || start > end) { alert('範圍不正確'); return; }
+            const startVal = document.getElementById('quiz-start-lesson').value;
+            const endVal = document.getElementById('quiz-end-lesson').value;
+            const start = parseInt(startVal) - 1;
+            const end = parseInt(endVal) - 1;
+            if (startVal === '' || endVal === '' || isNaN(start) || isNaN(end) || start < 0 || end >= chineseLessons.length || start > end) { 
+                alert('請輸入正確的課程範圍！(1~' + chineseLessons.length + ')'); 
+                return; 
+            }
             let allWords = [];
             for (let i = start; i <= end; i++) allWords = allWords.concat(chineseLessons[i].words);
             chineseQuizMode.words = allWords.sort(() => Math.random() - 0.5).slice(0, 5);
@@ -970,6 +1159,13 @@
                 btn.onclick = () => { eslState.lessonIdx = idx; eslState.wordIdx = 0; loadEslWord(); renderEslSidebar(); toggleEslSidebar(); };
                 sidebar.appendChild(btn);
             });
+            // 添加小測驗按鈕到底部
+            const quizBtn = document.createElement('button');
+            quizBtn.className = 'sidebar-quiz-btn';
+            quizBtn.style.background = 'linear-gradient(135deg, #1565c0, #0d47a1)';
+            quizBtn.innerHTML = '🎯 小測驗';
+            quizBtn.onclick = () => { document.getElementById('esl-quiz-modal').classList.add('active'); toggleEslSidebar(); };
+            sidebar.appendChild(quizBtn);
         }
 
         function loadEslWord() {
@@ -1003,14 +1199,63 @@
         }
 
         // ESL Quiz
-        let eslQuiz = { words: [], currentIdx: 0, score: 0 };
+        let eslQuiz = { words: [], currentIdx: 0, score: 0, mode: 'spelling' };
+        let fillBlankQuiz = { words: [], currentIdx: 0, score: 0, currentWord: '', blanks: '' };
 
         function startEslQuiz() {
-            eslQuiz.words = eslLessons[eslState.lessonIdx].words.sort(() => Math.random() - 0.5).slice(0, 5);
-            eslQuiz.currentIdx = 0;
-            eslQuiz.score = 0;
-            document.getElementById('esl-quiz-container').classList.add('active');
-            loadEslQuizQuestion();
+            // 舊函數保留兼容
+            document.getElementById('esl-quiz-modal').classList.add('active');
+        }
+
+        function closeEslQuizModal() {
+            document.getElementById('esl-quiz-modal').classList.remove('active');
+        }
+
+        function selectEslMode(mode) {
+            eslQuiz.mode = mode;
+            document.getElementById('esl-mode-spelling').style.background = mode === 'spelling' ? '#E91E63' : 'rgba(255,255,255,0.2)';
+            document.getElementById('esl-mode-spelling').style.border = mode === 'spelling' ? 'none' : '2px solid white';
+            document.getElementById('esl-mode-fillblank').style.background = mode === 'fillblank' ? '#4caf50' : 'rgba(255,255,255,0.2)';
+            document.getElementById('esl-mode-fillblank').style.border = mode === 'fillblank' ? 'none' : '2px solid white';
+        }
+
+        function startEslQuizWithRange() {
+            const start = parseInt(document.getElementById('esl-quiz-start').value);
+            const end = parseInt(document.getElementById('esl-quiz-end').value);
+            
+            // 驗證輸入
+            if (isNaN(start) || isNaN(end) || start < 1 || end > eslLessons.length || start > end) {
+                alert('請輸入正確的課程範圍！(1~' + eslLessons.length + ')');
+                return;
+            }
+            
+            // 收集範圍內的單字
+            let allWords = [];
+            for (let i = start - 1; i < end; i++) {
+                allWords = allWords.concat(eslLessons[i].words);
+            }
+            
+            closeEslQuizModal();
+            
+            if (eslQuiz.mode === 'spelling') {
+                eslQuiz.words = allWords.sort(() => Math.random() - 0.5).slice(0, 5);
+                eslQuiz.currentIdx = 0;
+                eslQuiz.score = 0;
+                document.getElementById('esl-quiz-container').classList.add('active');
+                loadEslQuizQuestion();
+            } else {
+                fillBlankQuiz.words = allWords
+                    .filter(w => w.replace(/\s/g, '').length >= 4)
+                    .sort(() => Math.random() - 0.5).slice(0, 5);
+                if (fillBlankQuiz.words.length < 3) {
+                    alert('選擇範圍內的單字太短，無法進行填空測驗');
+                    return;
+                }
+                fillBlankQuiz.currentIdx = 0;
+                fillBlankQuiz.score = 0;
+                document.getElementById('esl-fillblank-container').classList.add('active');
+                loadFillBlankQuestion();
+            }
         }
 
         function loadEslQuizQuestion() {
@@ -1056,50 +1301,188 @@
             document.getElementById('esl-quiz-container').classList.remove('active');
         }
 
+        // 填空測驗邏輯
+        function loadFillBlankQuestion() {
+            if (fillBlankQuiz.currentIdx >= fillBlankQuiz.words.length) {
+                playSuccessSound();
+                alert('恭喜完成！答對 ' + fillBlankQuiz.score + ' / ' + fillBlankQuiz.words.length + ' 題');
+                endFillBlankQuiz();
+                return;
+            }
+            
+            const word = fillBlankQuiz.words[fillBlankQuiz.currentIdx];
+            fillBlankQuiz.currentWord = word;
+            
+            // 生成填空題（隨機隱藏2-3個連續字母）
+            const letters = word.replace(/\s/g, '').split('');
+            const hideCount = Math.min(3, Math.floor(letters.length / 2));
+            const startIdx = Math.floor(Math.random() * (letters.length - hideCount));
+            
+            let display = '';
+            let blanks = '';
+            for (let i = 0; i < letters.length; i++) {
+                if (i >= startIdx && i < startIdx + hideCount) {
+                    display += '_';
+                    blanks += letters[i];
+                } else {
+                    display += letters[i].toUpperCase();
+                }
+            }
+            
+            fillBlankQuiz.blanks = blanks.toLowerCase();
+            document.getElementById('fill-blank-display').innerText = display;
+            document.getElementById('esl-fillblank-progress').innerText = (fillBlankQuiz.currentIdx + 1) + ' / ' + fillBlankQuiz.words.length;
+            document.getElementById('fill-blank-input').value = '';
+            document.getElementById('fill-blank-input').className = 'fill-blank-input';
+            document.getElementById('fill-blank-feedback').innerText = '';
+            
+            speakFillBlankWord();
+        }
+
+        function speakFillBlankWord() {
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(fillBlankQuiz.currentWord);
+                u.lang = 'en-US'; u.rate = 0.7;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function checkFillBlankAnswer() {
+            const input = document.getElementById('fill-blank-input');
+            const userAnswer = input.value.toLowerCase().trim();
+            
+            if (userAnswer === fillBlankQuiz.blanks) {
+                input.className = 'fill-blank-input';
+                input.style.borderColor = '#4caf50';
+                input.style.background = '#e8f5e9';
+                document.getElementById('fill-blank-feedback').innerHTML = '✓ 正確！答案是 ' + fillBlankQuiz.currentWord;
+                document.getElementById('fill-blank-feedback').style.color = '#4caf50';
+                fillBlankQuiz.score++;
+                setTimeout(() => { fillBlankQuiz.currentIdx++; loadFillBlankQuestion(); }, 1500);
+            } else {
+                input.style.borderColor = '#f44336';
+                input.style.background = '#ffebee';
+                document.getElementById('fill-blank-feedback').innerHTML = '✗ 正確答案是: ' + fillBlankQuiz.blanks.toUpperCase() + ' (' + fillBlankQuiz.currentWord + ')';
+                document.getElementById('fill-blank-feedback').style.color = '#f44336';
+                setTimeout(() => { fillBlankQuiz.currentIdx++; loadFillBlankQuestion(); }, 2500);
+            }
+        }
+
+        function endFillBlankQuiz() {
+            document.getElementById('esl-fillblank-container').classList.remove('active');
+        }
+
         document.getElementById('esl-quiz-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkEslAnswer(); });
+        document.getElementById('fill-blank-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkFillBlankAnswer(); });
 
         // ===== 99乘法表模組 =====
-        let mathState = { mode: 'table', a: 2, b: 1, score: 0, total: 0, quizQuestions: [], quizIdx: 0 };
+        let mathState = { mode: 'table', selectedNum: 1, a: 2, b: 1, score: 0, total: 0, quizQuestions: [], quizIdx: 0 };
 
         function initMathModule() {
+            selectMathNum(1);
             setMathMode('table');
+        }
+
+        function selectMathNum(num) {
+            mathState.selectedNum = num;
+            // 更新側邊欄按鈕狀態
+            document.querySelectorAll('.math-num-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx + 1 === num);
+            });
+            // 重新渲染當前模式
+            renderMathContent();
+        }
+
+        function toggleMathSidebar() {
+            document.getElementById('math-sidebar').classList.toggle('active');
+            document.getElementById('math-overlay').classList.toggle('active');
+        }
+
+        function openMathQuizModal() {
+            document.getElementById('math-quiz-modal').classList.add('active');
+            // 關閉側邊欄（如果打開的話）
+            document.getElementById('math-sidebar').classList.remove('active');
+            document.getElementById('math-overlay').classList.remove('active');
+        }
+
+        function closeMathQuizModal() {
+            document.getElementById('math-quiz-modal').classList.remove('active');
+        }
+
+        function startMathQuizWithRange() {
+            const start = parseInt(document.getElementById('math-quiz-start').value);
+            const end = parseInt(document.getElementById('math-quiz-end').value);
+            
+            // 驗證輸入
+            if (isNaN(start) || isNaN(end) || start < 1 || end > 9 || start > end) {
+                alert('請輸入正確的範圍！(1~9)');
+                return;
+            }
+            
+            closeMathQuizModal();
+            
+            // 生成範圍內的測驗題目
+            mathState.quizQuestions = [];
+            mathState.quizIdx = 0;
+            mathState.score = 0;
+            
+            // 從範圍內的數字各取題目
+            for (let num = start; num <= end; num++) {
+                const multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+                // 每個數字取2題
+                for (let i = 0; i < 2; i++) {
+                    mathState.quizQuestions.push({ a: num, b: multipliers[i] });
+                }
+            }
+            // 打亂順序，取最多10題
+            mathState.quizQuestions = mathState.quizQuestions.sort(() => Math.random() - 0.5).slice(0, 10);
+            
+            renderMathQuiz();
         }
 
         function setMathMode(mode) {
             mathState.mode = mode;
             document.querySelectorAll('.math-mode-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            
+            document.getElementById('math-mode-' + mode).classList.add('active');
+            renderMathContent();
+        }
+
+        function renderMathContent() {
             const card = document.getElementById('math-card');
+            const num = mathState.selectedNum;
             
-            if (mode === 'table') {
-                let html = '<div class="math-table">';
+            if (mathState.mode === 'table') {
+                // 顯示選定數字的乘法表
+                let html = '<h3 style="color:#4caf50;margin-bottom:20px;">' + num + ' 的乘法表</h3>';
+                html += '<div class="math-single-table">';
                 for (let i = 1; i <= 9; i++) {
-                    html += '<div class="math-table-cell header">' + i + '</div>';
-                }
-                for (let a = 1; a <= 9; a++) {
-                    for (let b = 1; b <= 9; b++) {
-                        html += '<div class="math-table-cell">' + a + '×' + b + '=' + (a*b) + '</div>';
-                    }
+                    html += '<div class="math-single-row">' + num + ' × ' + i + ' = ' + (num * i) + '</div>';
                 }
                 html += '</div>';
                 card.innerHTML = html;
-            } else if (mode === 'practice') {
-                generateMathQuestion();
+            } else if (mathState.mode === 'practice') {
+                // 練習模式 - 使用選定的數字
+                mathState.a = num;
+                mathState.b = Math.floor(Math.random() * 9) + 1;
                 renderMathPractice();
-            } else if (mode === 'quiz') {
-                startMathQuiz();
             }
         }
 
         function generateMathQuestion() {
-            mathState.a = Math.floor(Math.random() * 9) + 1;
-            mathState.b = Math.floor(Math.random() * 9) + 1;
+            // 在練習模式下使用選定的數字
+            if (mathState.mode === 'practice') {
+                mathState.a = mathState.selectedNum;
+                mathState.b = Math.floor(Math.random() * 9) + 1;
+            } else {
+                mathState.a = Math.floor(Math.random() * 9) + 1;
+                mathState.b = Math.floor(Math.random() * 9) + 1;
+            }
         }
 
         function renderMathPractice() {
             const card = document.getElementById('math-card');
             card.innerHTML = `
+                <h3 style="color:#4caf50;margin-bottom:20px;">${mathState.selectedNum} 的乘法練習</h3>
                 <div class="math-question">${mathState.a} × ${mathState.b} = ?</div>
                 <input type="number" class="math-input" id="math-input" placeholder="?" min="1" max="81">
                 <div class="math-feedback" id="math-feedback"></div>
@@ -1137,10 +1520,13 @@
             mathState.quizQuestions = [];
             mathState.quizIdx = 0;
             mathState.score = 0;
-            for (let i = 0; i < 10; i++) {
+            const num = mathState.selectedNum;
+            // 生成該數字的 9 道測驗題（1~9 隨機順序）
+            const multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < 9; i++) {
                 mathState.quizQuestions.push({
-                    a: Math.floor(Math.random() * 9) + 1,
-                    b: Math.floor(Math.random() * 9) + 1
+                    a: num,
+                    b: multipliers[i]
                 });
             }
             renderMathQuiz();
@@ -1154,7 +1540,7 @@
                     <div class="success-emoji">🎉</div>
                     <div class="math-question">測驗完成！</div>
                     <div class="math-score">得分: ${mathState.score} / ${mathState.quizQuestions.length}</div>
-                    <button class="math-btn math-btn-next" onclick="startMathQuiz()" style="margin-top:20px;">再測一次</button>
+                    <button class="math-btn math-btn-next" onclick="openMathQuizModal()" style="margin-top:20px;">再測一次</button>
                 `;
                 return;
             }
@@ -1162,6 +1548,7 @@
             const q = mathState.quizQuestions[mathState.quizIdx];
             const card = document.getElementById('math-card');
             card.innerHTML = `
+                <h3 style="color:#4caf50;margin-bottom:15px;">${mathState.selectedNum} 的乘法測驗</h3>
                 <div class="math-score">第 ${mathState.quizIdx + 1} / ${mathState.quizQuestions.length} 題</div>
                 <div class="math-question">${q.a} × ${q.b} = ?</div>
                 <input type="number" class="math-input" id="math-quiz-input" placeholder="?" min="1" max="81">
