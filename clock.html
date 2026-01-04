@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快樂學時鐘</title>
+    <!-- 引入 Tailwind CSS (用於美觀的樣式) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 和 ReactDOM (核心運作邏輯) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- 引入 Babel (讓瀏覽器看懂現代程式碼) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f9ff; /* sky-50 */
+            touch-action: manipulation; /* 改善觸控體驗 */
+        }
+        /* 簡單的淡入動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .animate-bounce-in {
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        /* 隱藏選取文字，避免拖曳時選到文字 */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- 圖示組件 ---
+        const IconClock = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        );
+        const IconEye = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        );
+        const IconEyeOff = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+        );
+        const IconRotateCcw = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        );
+        const IconPlay = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        );
+        const IconPause = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        );
+        const IconDice = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M16 8h.01"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 12h.01"/></svg>
+        );
+        const IconCheck = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>
+        );
+        const IconStar = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        );
+
+        const LearningClock = () => {
+            // mode: 'realtime'(現在時間), 'practice'(練習模式), 'challenge'(挑戰模式/Quiz)
+            const [mode, setMode] = useState('practice'); 
+            const [time, setTime] = useState(new Date());
+            const [showDigital, setShowDigital] = useState(true);
+
+            // 用於練習模式/挑戰模式的手動時間 (以分鐘為單位)
+            const [manualMinutes, setManualMinutes] = useState(720); // 預設 12:00
+
+            // 挑戰模式專用 state
+            const [targetMinutes, setTargetMinutes] = useState(null);
+            const [feedback, setFeedback] = useState(null); // 'correct', 'wrong', null
+
+            const clockRef = useRef(null);
+            const [isDragging, setIsDragging] = useState(false);
+            const lastAngleRef = useRef(0);
+            
+            // 新增：紀錄目前正在拖曳哪一根針 ('minute' 或 'hour')
+            const dragTargetRef = useRef('minute'); 
+
+            // 更新真實時間
+            useEffect(() => {
+                let interval;
+                if (mode === 'realtime') {
+                    interval = setInterval(() => {
+                        setTime(new Date());
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [mode]);
+
+            // 取得當前顯示的小時與分鐘
+            const getDisplayTime = () => {
+                if (mode === 'realtime') {
+                    return {
+                        hours: time.getHours(),
+                        minutes: time.getMinutes(),
+                    };
+                } else {
+                    // 修正：使用 normalize 處理顯示時間，因為 manualMinutes 現在可以無限累加
+                    const normalized = ((manualMinutes % 1440) + 1440) % 1440;
+                    const h = Math.floor(normalized / 60) % 12;
+                    return {
+                        hours: h === 0 ? 12 : h,
+                        minutes: normalized % 60,
+                        totalMinutes: normalized // for logic
+                    };
+                }
+            };
+
+            const { hours, minutes } = getDisplayTime();
+
+            // 計算指針角度
+            // 修正：練習模式改用無限累加的分鐘數來算角度，解決 59->0 分倒轉的問題
+            let minuteDeg, hourDeg;
+            if (mode === 'realtime') {
+                minuteDeg = time.getMinutes() * 6;
+                hourDeg = (time.getHours() % 12) * 30 + time.getMinutes() * 0.5;
+            } else {
+                minuteDeg = manualMinutes * 6;
+                hourDeg = manualMinutes * 0.5;
+            }
+
+            // --- 邏輯功能 ---
+
+            const adjustTime = (changeInMinutes) => {
+                setFeedback(null); // 清除挑戰模式的結果
+                if(mode === 'realtime') setMode('practice');
+                
+                // 新增：當使用按鈕調整時間時，自動顯示電子鐘數字，方便即時觀察
+                if(mode === 'practice') setShowDigital(true);
+
+                // 修正：不再強制 % 1440，允許時間無限累加/遞減，保持旋轉方向正確
+                setManualMinutes((prev) => prev + changeInMinutes);
+            };
+
+            // 隨機出題 (練習模式 1：隱藏數字猜時間)
+            const setRandomTimePractice = () => {
+                setMode('practice');
+                const randomMins = Math.floor(Math.random() * (12 * 12)) * 5; // 5分鐘一跳
+                setManualMinutes(randomMins);
+                setShowDigital(false);
+                setFeedback(null);
+            };
+
+            // 開始挑戰 (練習模式 2：看數字撥指針)
+            const startChallenge = () => {
+                setMode('challenge');
+                const randomMins = Math.floor(Math.random() * (12 * 12)) * 5; // 5分鐘一跳
+                setTargetMinutes(randomMins);
+                // 重置時鐘到一個不相關的時間 (例如 12:00)，讓小朋友重新撥
+                setManualMinutes(720); 
+                setShowDigital(false); // 挑戰模式不顯示當前數字(因為那是答案)
+                setFeedback(null);
+            };
+
+            // 檢查答案
+            const checkAnswer = () => {
+                // 比對小時和分鐘 (需先將無限累加的時間標準化到 0-720 區間)
+                const currentTotal = ((manualMinutes % 720) + 720) % 720;
+                const targetTotal = ((targetMinutes % 720) + 720) % 720;
+
+                // 允許一點點誤差嗎？不，因為數字是5分鐘一跳，應該要準確
+                if (currentTotal === targetTotal) {
+                    setFeedback('correct');
+                } else {
+                    setFeedback('wrong');
+                }
+            };
+
+            // --- 拖曳邏輯 ---
+            
+            // 輔助函式：計算兩個角度在圓周上的最短距離
+            const getShortestAngleDiff = (angle1, angle2) => {
+                const diff = Math.abs(angle1 - angle2);
+                return Math.min(diff, 360 - diff);
+            };
+
+            const calculateAngle = (e) => {
+                if (!clockRef.current) return 0;
+                const rect = clockRef.current.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                // 處理觸控或滑鼠事件
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const x = clientX - centerX;
+                const y = clientY - centerY;
+                
+                // Math.atan2 回傳 -PI ~ PI，0 是 3點鐘方向
+                let rad = Math.atan2(y, x);
+                let deg = rad * (180 / Math.PI);
+                
+                // 轉換成時鐘角度：0度是12點鐘方向
+                return (deg + 90 + 360) % 360;
+            };
+
+            const handlePointerDown = (e) => {
+                if (mode === 'realtime') return; // 真實時間模式不能撥
+                e.preventDefault(); // 防止滾動
+                
+                const clickAngle = calculateAngle(e);
+                lastAngleRef.current = clickAngle;
+                setFeedback(null); // 開始撥動就清除結果
+
+                // 新增：如果是練習模式，當使用者開始撥動指針時，自動顯示數字
+                // 這樣小朋友撥動指針時，可以馬上看到下方數字跟著變，不用再按開眼睛
+                if (mode === 'practice') {
+                    setShowDigital(true);
+                }
+
+                // 判斷使用者想要拖曳哪一根針
+                // 取得目前時針和分針的角度 (需將無限累加的時間轉回 0-360 度)
+                const currentMinAngle = ((manualMinutes * 6) % 360 + 360) % 360;
+                const currentHourAngle = ((manualMinutes * 0.5) % 360 + 360) % 360;
+
+                // 計算點擊位置距離時針和分針各差幾度
+                const distToMin = getShortestAngleDiff(clickAngle, currentMinAngle);
+                const distToHour = getShortestAngleDiff(clickAngle, currentHourAngle);
+
+                // 如果距離時針比分針近，就判定為拖曳時針，否則預設為分針
+                if (distToHour < distToMin) {
+                    dragTargetRef.current = 'hour';
+                } else {
+                    dragTargetRef.current = 'minute';
+                }
+                
+                // 設定狀態開始拖曳 (放在判斷 target 之後，確保渲染時能抓到正確的 target)
+                setIsDragging(true);
+            };
+
+            const handlePointerMove = (e) => {
+                if (!isDragging || mode === 'realtime') return;
+                e.preventDefault();
+
+                const currentAngle = calculateAngle(e);
+                let delta = currentAngle - lastAngleRef.current;
+
+                // 處理跨越 0/360 度的邊界情況
+                if (delta > 180) delta -= 360;
+                if (delta < -180) delta += 360;
+
+                let minutesChange = 0;
+
+                if (dragTargetRef.current === 'minute') {
+                    // 拖曳【分針】：分針轉 6 度 = 1 分鐘
+                    // 四捨五入避免抖動
+                    minutesChange = Math.round(delta / 6);
+                } else {
+                    // 拖曳【時針】：時針轉 1 度 = 2 分鐘 (因為時針轉一圈360度=720分鐘，360/720 = 0.5度/分)
+                    // 時針移動較慢，但時間改變量大
+                    minutesChange = Math.round(delta * 2); 
+                }
+
+                if (minutesChange !== 0) {
+                   // 修正：直接累加，不進行 % 1440 限制，讓指針可以無限順/逆時針旋轉
+                   setManualMinutes(prev => prev + minutesChange);
+                   
+                   // 只有當時間真的改變時，才更新 lastAngle，這樣可以累積微小的移動直到足以改變一分鐘
+                   lastAngleRef.current = currentAngle; 
+                }
+            };
+
+            const handlePointerUp = () => {
+                setIsDragging(false);
+                // 拖曳結束後，將時間對齊到最近的分鐘
+                setManualMinutes(prev => Math.round(prev));
+            };
+
+            // 判斷是否正在拖曳特定指針 (用於顯示高亮效果)
+            const isDraggingHour = isDragging && dragTargetRef.current === 'hour';
+            const isDraggingMinute = isDragging && dragTargetRef.current === 'minute';
+
+            // --- Render Helpers ---
+            const renderClockNumbers = () => {
+                const numbers = [];
+                for (let i = 1; i <= 12; i++) {
+                    const angle = i * 30; 
+                    const radius = 110;
+                    const x = Math.sin((angle * Math.PI) / 180) * radius;
+                    const y = -Math.cos((angle * Math.PI) / 180) * radius;
+                    
+                    numbers.push(
+                        <div key={i} className="absolute font-bold text-2xl text-slate-700 pointer-events-none"
+                             style={{ transform: `translate(${x}px, ${y}px)` }}>
+                            {i}
+                        </div>
+                    );
+                }
+                return numbers;
+            };
+
+            const renderTicks = () => {
+                const ticks = [];
+                for (let i = 0; i < 60; i++) {
+                    const angle = i * 6;
+                    const isHourTick = i % 5 === 0;
+                    const height = isHourTick ? 12 : 6;
+                    const width = isHourTick ? 4 : 2;
+                    const color = isHourTick ? 'bg-slate-400' : 'bg-slate-200';
+                    ticks.push(
+                        <div key={i} className={`absolute origin-bottom ${color} rounded-full pointer-events-none`}
+                             style={{ height: `${height}px`, width: `${width}px`, transform: `rotate(${angle}deg) translate(0, -135px)` }} />
+                    );
+                }
+                return ticks;
+            };
+
+            // 取得挑戰模式的目標時間字串
+            const getTargetTimeString = () => {
+                if (targetMinutes === null) return "";
+                const h = Math.floor(targetMinutes / 60) % 12;
+                const displayH = h === 0 ? 12 : h;
+                const m = targetMinutes % 60;
+                return `${displayH}:${m.toString().padStart(2, '0')}`;
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans no-select">
+                    
+                    {/* 標題區 */}
+                    <header className="mb-4 text-center">
+                        <h1 className="text-3xl md:text-4xl font-bold text-sky-600 flex items-center gap-3 justify-center mb-1">
+                            <IconClock size={36} />
+                            快樂學時鐘
+                        </h1>
+                        <p className="text-slate-500 text-lg">
+                            {mode === 'challenge' ? '挑戰模式：撥出正確的時間' : '認識長針與短針'}
+                        </p>
+                    </header>
+
+                    {/* 模式切換 Tabs */}
+                    <div className="flex bg-slate-200 p-1 rounded-xl mb-6 w-full max-w-lg">
+                        <button onClick={() => setMode('practice')}
+                            className={`flex-1 py-2 rounded-lg font-bold text-sm md:text-base transition-all ${mode === 'practice' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                            練習模式 1<br/><span className="text-xs font-normal">看鐘猜時間</span>
+                        </button>
+                        <button onClick={startChallenge}
+                            className={`flex-1 py-2 rounded-lg font-bold text-sm md:text-base transition-all ${mode === 'challenge' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                            練習模式 2<br/><span className="text-xs font-normal">看數字撥鐘</span>
+                        </button>
+                        <button onClick={() => setMode('realtime')}
+                            className={`flex-1 py-2 rounded-lg font-bold text-sm md:text-base transition-all ${mode === 'realtime' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                            現在時間
+                        </button>
+                    </div>
+
+                    {/* 主控制面板 */}
+                    <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 w-full max-w-lg flex flex-col items-center border-4 border-sky-100 relative overflow-hidden">
+                        
+                        {/* 挑戰模式的問題提示 */}
+                        {mode === 'challenge' && (
+                            <div className="bg-purple-50 w-full rounded-xl p-3 mb-4 text-center border-2 border-purple-100">
+                                <span className="text-slate-500 text-sm block mb-1">請撥出這個時間</span>
+                                <div className="text-4xl font-bold text-purple-600 font-mono tracking-wider animate-bounce-in">
+                                    {getTargetTimeString()}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 時鐘本體 */}
+                        <div 
+                            className="relative w-72 h-72 md:w-80 md:h-80 bg-white rounded-full border-8 border-sky-200 shadow-inner flex items-center justify-center mb-6 cursor-pointer touch-none"
+                            ref={clockRef}
+                            onPointerDown={handlePointerDown}
+                            onPointerMove={handlePointerMove}
+                            onPointerUp={handlePointerUp}
+                            onPointerLeave={handlePointerUp}
+                            title="按住指針可以拖曳調整時間喔！"
+                        >
+                            <div className="absolute w-full h-full flex items-center justify-center">{renderTicks()}</div>
+                            <div className="absolute w-full h-full flex items-center justify-center">{renderClockNumbers()}</div>
+                            <div className="absolute w-4 h-4 bg-slate-800 rounded-full z-20 shadow-sm pointer-events-none"></div>
+
+                            {/* 時針 */}
+                            <div 
+                                className={`absolute z-10 rounded-full pointer-events-none transition-all duration-75 ${
+                                    isDraggingHour 
+                                        ? 'bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.8)] scale-105' // 拖曳時：變亮、發光、稍微變大
+                                        : 'bg-red-500 shadow-md' // 一般狀態
+                                }`}
+                                style={{ width: '12px', height: '70px', bottom: '50%', left: 'calc(50% - 6px)', transformOrigin: 'bottom center', transform: `rotate(${hourDeg}deg)` }}>
+                            </div>
+                            
+                            {/* 分針 */}
+                            <div 
+                                className={`absolute z-10 rounded-full pointer-events-none transition-all duration-75 ${
+                                    isDraggingMinute
+                                        ? 'bg-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.8)] scale-105' // 拖曳時：變亮、發光、稍微變大
+                                        : 'bg-blue-500 shadow-md' // 一般狀態
+                                }`}
+                                style={{ width: '8px', height: '110px', bottom: '50%', left: 'calc(50% - 4px)', transformOrigin: 'bottom center', transform: `rotate(${minuteDeg}deg)` }}
+                            />
+
+                            {/* 拖曳提示遮罩 (互動層) */}
+                            {mode !== 'realtime' && (
+                                <div className="absolute w-full h-full rounded-full z-30 opacity-0 active:cursor-grabbing hover:cursor-grab"></div>
+                            )}
+                        </div>
+
+                        {/* 操作按鈕 / 顯示區 */}
+                        <div className="w-full">
+                            
+                            {/* 模式 1 & 真實時間：顯示電子鐘 */}
+                            {(mode === 'practice' || mode === 'realtime') && (
+                                <div className="bg-slate-100 rounded-2xl p-4 w-full flex flex-col items-center justify-center mb-4 relative min-h-[100px]">
+                                    {mode === 'practice' && (
+                                        <button onClick={() => setShowDigital(!showDigital)}
+                                            className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 transition-colors">
+                                            {showDigital ? <IconEye size={20} /> : <IconEyeOff size={20} />}
+                                        </button>
+                                    )}
+                                    <div className="text-slate-500 text-sm mb-1 font-bold">現在時間是</div>
+                                    {showDigital ? (
+                                        <div className="flex items-end gap-2 text-5xl font-mono font-bold tracking-wider">
+                                            <span className="text-red-500">{hours}</span>
+                                            <span className="text-slate-300 pb-2 text-3xl">:</span>
+                                            <span className="text-blue-500">{minutes.toString().padStart(2, '0')}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-[48px] text-slate-400 font-bold text-xl">???</div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 模式 2：挑戰控制區 */}
+                            {mode === 'challenge' && (
+                                <div className="mb-4 text-center">
+                                    {feedback === null ? (
+                                        <button 
+                                            onClick={checkAnswer}
+                                            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xl py-3 rounded-xl font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            <IconCheck /> 我撥好了！
+                                        </button>
+                                    ) : (
+                                        <div className={`rounded-xl p-4 text-xl font-bold animate-bounce-in ${feedback === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                            {feedback === 'correct' ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="flex gap-1"><IconStar fill="currentColor" /><IconStar fill="currentColor" /><IconStar fill="currentColor" /></div>
+                                                    好棒！答對了！
+                                                    <button onClick={startChallenge} className="mt-2 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">下一題</button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    再試試看喔！
+                                                    <span className="text-sm font-normal text-slate-600">目前的指針是 {hours}:{minutes.toString().padStart(2,'0')}</span>
+                                                    <button onClick={() => setFeedback(null)} className="mt-2 text-sm bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg hover:bg-red-50">繼續嘗試</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 通用控制按鈕 (練習模式顯示，挑戰模式也顯示輔助微調) */}
+                            {mode !== 'realtime' && feedback !== 'correct' && (
+                                <div className="mt-4">
+                                    {mode === 'practice' && (
+                                        <button onClick={setRandomTimePractice}
+                                            className="w-full bg-sky-100 hover:bg-sky-200 text-sky-700 py-3 rounded-xl font-bold transition-colors active:scale-95 flex items-center justify-center gap-2 mb-3 shadow-sm">
+                                            <IconDice size={22} /> 隨機出題 (練習模式)
+                                        </button>
+                                    )}
+
+                                    <p className="text-center text-slate-400 text-xs mb-2">👇 也可以用按鈕微調，或直接拖曳鐘面 👇</p>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <button onClick={() => adjustTime(-60)} className="bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 py-2 rounded-lg font-bold text-sm">-1時</button>
+                                        <button onClick={() => adjustTime(60)} className="bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 py-2 rounded-lg font-bold text-sm">+1時</button>
+                                        <button onClick={() => adjustTime(-5)} className="bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600 py-2 rounded-lg font-bold text-sm">-5分</button>
+                                        <button onClick={() => adjustTime(5)} className="bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600 py-2 rounded-lg font-bold text-sm">+5分</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        適合國小一年級數學單元：認識時鐘
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LearningClock />);
+    </script>
+</body>
+</html>
