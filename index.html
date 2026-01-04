@@ -18,7 +18,137 @@
             margin: 0; 
             min-height: 100vh;
             user-select: none;
+            overflow-x: hidden;
         }
+        
+        /* ===== 登入與個人檔案介面 ===== */
+        .login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; width: 90%;
+        }
+        .google-btn {
+            background: white; border: 1px solid #ddd; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 16px; font-weight: bold; width: 100%; margin-top: 20px;
+            transition: 0.2s;
+        }
+        .google-btn:hover { background: #f5f5f5; }
+        .google-icon { width: 20px; height: 20px; }
+
+        .guest-btn {
+            background: white; border: 2px solid #ccc; padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px;
+            color: #666; transition: 0.2s;
+        }
+        .guest-btn:hover { background: #eee; border-color: #bbb; color: #333; }
+
+        .profile-list { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 30px; }
+        .profile-item {
+            display: flex; flex-direction: column; align-items: center; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .profile-item:hover { transform: scale(1.1); }
+        .profile-avatar {
+            width: 80px; height: 80px; border-radius: 50%; background: #eee;
+            display: flex; align-items: center; justify-content: center; 
+            border: 4px solid transparent; overflow: hidden; position: relative;
+        }
+        
+        .pet-img {
+            width: 90%; height: 90%; object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+        
+        .profile-item.add .profile-avatar { border: 4px dashed #ccc; color: #ccc; font-size: 40px; }
+        .profile-name { margin-top: 10px; color: white; font-weight: bold; font-size: 18px; }
+
+        /* ===== 選蛋介面 ===== */
+        .egg-selection-container {
+            display: none; flex-direction: column; align-items: center;
+        }
+        .egg-grid { display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap; justify-content: center; }
+        .egg-card {
+            background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px;
+            cursor: pointer; text-align: center; border: 2px solid transparent;
+            transition: 0.3s; width: 160px;
+        }
+        .egg-card:hover { background: rgba(255,255,255,0.2); transform: translateY(-10px); border-color: #f1c40f; }
+        
+        .egg-preview-img { 
+            width: 100px; height: 100px; object-fit: contain; 
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* ===== 首頁寵物區塊 ===== */
+        .pet-corner {
+            background: rgba(255,255,255,0.95); border-radius: 20px; padding: 20px;
+            width: 100%; max-width: 600px; margin-bottom: 30px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); position: relative;
+        }
+        .pet-display { display: flex; align-items: center; gap: 20px; }
+        
+        .pet-avatar { 
+            width: 100px; height: 100px; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pet-avatar img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+
+        .pet-info h3 { margin: 0; color: #333; }
+        .pet-status-text { color: #666; font-size: 14px; margin-top: 5px; }
+        
+        .energy-bar-container { width: 150px; height: 15px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .energy-bar-fill { height: 100%; background: linear-gradient(90deg, #f1c40f, #e67e22); width: 0%; transition: width 0.5s; }
+
+        .logout-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: none; color: #999; font-size: 12px; cursor: pointer;
+        }
+
+        /* ===== GM 測試按鈕 ===== */
+        .gm-btn {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1500;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white; border: 2px solid #fff;
+            padding: 12px 20px; border-radius: 50px;
+            font-weight: bold; font-size: 14px;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: 0.3s; display: none;
+        }
+        .gm-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .gm-btn.active { display: block; }
+
+        /* ===== 孵化動畫 ===== */
+        .hatch-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 3000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .hatch-egg-container { 
+            width: 80vw; 
+            max-width: 800px; 
+            height: auto; 
+            aspect-ratio: 16/9;
+            cursor: pointer; 
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        } 
+        .hatch-egg-container img { width: 100%; height: 100%; object-fit: contain; }
+        .hatch-egg-container video { width: 100%; height: 100%; object-fit: contain; }
+        .hatch-egg-container.shake { animation: shake 0.5s infinite; }
+
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+        .hatch-light { position: absolute; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; }
         
         /* ===== 首頁選單 ===== */
         .home-container {
@@ -78,6 +208,7 @@
         .menu-card.chinese { border-top: 5px solid #e91e63; }
         .menu-card.english { border-top: 5px solid #2196f3; }
         .menu-card.math { border-top: 5px solid #4caf50; }
+        .menu-card.clock { border-top: 5px solid #ff9800; }
         
         .version-tag {
             position: fixed;
@@ -593,8 +724,83 @@
     </style>
 </head>
 <body>
+    <!-- ===== 登入系統 ===== -->
+    <div class="login-overlay" id="login-overlay">
+        <div class="login-card" id="login-step-1">
+            <h1 style="color:#333; margin-bottom: 5px;">歡迎來到小一學習樂園</h1>
+            <p style="color:#666;">請家長先登入帳號</p>
+            <button class="google-btn" id="google-login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon">
+                使用 Google 帳號登入
+            </button>
+            <button class="guest-btn" id="guest-login-btn">
+                👤 訪客體驗 (不儲存進度)
+            </button>
+        </div>
+
+        <div class="login-card" id="login-step-2" style="display:none; max-width: 600px;">
+            <h2 style="color:#333;">誰在學習？</h2>
+            <div class="profile-list" id="profile-list"></div>
+            
+            <div id="new-profile-form" style="display:none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                <input type="text" id="new-child-name" placeholder="輸入小朋友暱稱" style="padding:10px; font-size:16px; border-radius:5px; border:1px solid #ccc;">
+                <button class="btn" style="background:#4caf50; color:white; margin-left:10px;" onclick="saveNewProfile()">確定</button>
+                <button class="btn" style="background:#999; color:white;" onclick="cancelNewProfile()">取消</button>
+            </div>
+        </div>
+
+        <!-- 選蛋介面 -->
+        <div class="egg-selection-container" id="login-step-3">
+            <h2 style="color:white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">選擇一顆神祕蛋！</h2>
+            <p style="color:#ddd;">這顆蛋會陪伴你學習喔</p>
+            <div class="egg-grid">
+                <div class="egg-card" onclick="selectEgg('fire')">
+                    <img class="egg-preview-img" id="egg-preview-fire" alt="Fire Egg" />
+                    <div style="color:#ffccbc; font-weight:bold; margin-top:10px;">熱血蛋</div>
+                </div>
+                <div class="egg-card" onclick="selectEgg('water')">
+                    <img class="egg-preview-img" id="egg-preview-water" alt="Water Egg" />
+                    <div style="color:#b3e5fc; font-weight:bold; margin-top:10px;">溫柔蛋</div>
+                </div>
+                <div class="egg-card" onclick="selectEgg('forest')">
+                    <img class="egg-preview-img" id="egg-preview-forest" alt="Forest Egg" />
+                    <div style="color:#c8e6c9; font-weight:bold; margin-top:10px;">智慧蛋</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 孵化動畫 ===== -->
+    <div class="hatch-overlay" id="hatch-overlay">
+        <div class="hatch-egg-container" id="hatch-egg-display">
+            <!-- 動態插入 -->
+        </div>
+        <div class="hatch-light" id="hatch-light"></div>
+        <h2 style="color:white; margin-top:20px;" id="hatch-text">點擊蛋來孵化！</h2>
+    </div>
+
+    <!-- GM 測試按鈕 -->
+    <button class="gm-btn" id="gm-btn" onclick="gmFillEnergy()">⚡ GM: 集滿能量</button>
+
     <!-- ===== 首頁選單 ===== -->
     <div class="home-container" id="home-page">
+        <div class="pet-corner" id="pet-corner">
+            <button class="logout-btn" onclick="logout()">登出</button>
+            <div class="pet-display">
+                <!-- 頭像區塊 -->
+                <div class="pet-avatar" id="home-pet-avatar"></div>
+                <div class="pet-info">
+                    <h3 id="home-child-name">小朋友</h3>
+                    <div class="pet-status-text" id="home-pet-status">狀態: 孵化中...</div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-fill" id="home-energy-bar"></div>
+                    </div>
+                    <div style="font-size:12px; color:#888; margin-top:2px;">能量: <span id="energy-text">0/3</span></div>
+                </div>
+            </div>
+            <div style="font-size: 40px; opacity: 0.2;">🎓</div>
+        </div>
+
         <div class="home-title">🎓 小一學習樂園</div>
         <div class="home-subtitle">選擇你想要練習的項目</div>
         <div class="menu-grid">
@@ -612,6 +818,11 @@
                 <div class="menu-card-icon">🔢</div>
                 <div class="menu-card-title">99 乘法表</div>
                 <div class="menu-card-desc">乘法表複習與測驗</div>
+            </div>
+            <div class="menu-card clock" onclick="goToClock()">
+                <div class="menu-card-icon">🕐</div>
+                <div class="menu-card-title">時鐘練習</div>
+                <div class="menu-card-desc">學習認識時間</div>
             </div>
         </div>
         <div class="version-tag">V20.1</div>
@@ -827,6 +1038,402 @@
         </div>
     </div>
 
+    <!-- ===== Firebase 和寵物系統 ===== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, onSnapshot } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ============================================================
+        // ⚠️ 請在這裡替換成您自己的 Firebase Config ⚠️
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // ============================================================
+
+        const PET_ASSETS = {
+            fire: {
+                egg: "img/egg_fire.png",
+                hatchAnimation: "img/hatch_fire.webp",
+                petBorn: "img/pet_fire_born.png",
+                petIdle: "img/pet_fire_idle.gif"
+            },
+            water: {
+                egg: "img/egg_water.png",
+                hatchAnimation: "img/hatch_water.webp",
+                petBorn: "img/pet_water_born.png",
+                petIdle: "img/pet_water_idle.gif"
+            },
+            forest: {
+                egg: "img/egg_forest.png",
+                hatchAnimation: "img/hatch_forest.webp",
+                petBorn: "img/pet_forest_born.png",
+                petIdle: "img/pet_forest_idle.gif"
+            }
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null; 
+        let currentChild = null; 
+        let currentChildIndex = -1;
+        
+        let isGuest = false;
+        let guestData = { children: [] }; 
+        
+        // ============================================================
+        // ⚙️ GM 配置區（直接修改此處即可）
+        // ============================================================
+        const GM_CONFIG = {
+            gmMode: true,    // true=開啟GM模式 | false=關閉GM模式
+            debug: false      // 除錯模式
+        };
+        // ============================================================
+        
+        let gmMode = GM_CONFIG.gmMode;
+
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginStep1 = document.getElementById('login-step-1');
+        const loginStep2 = document.getElementById('login-step-2');
+        const loginStep3 = document.getElementById('login-step-3');
+        const homePage = document.getElementById('home-page');
+
+        // 初始化 GM 按鈕
+        function initGM() {
+            if (gmMode) {
+                console.log('🔧 GM 模式已啟用');
+                const gmBtn = document.getElementById('gm-btn');
+                if (gmBtn) {
+                    gmBtn.classList.add('active');
+                    console.log('✅ GM 按鈕已顯示');
+                }
+            } else {
+                console.log('✅ 正常模式');
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGM);
+        } else {
+            initGM();
+        }
+
+        window.gmFillEnergy = async function() {
+            if (!gmMode) {
+                alert('GM 模式未啟用！');
+                return;
+            }
+            
+            if (!currentChild) {
+                alert('請先選擇角色！');
+                return;
+            }
+
+            if (currentChild.petStatus === 'hatched') {
+                alert('寵物已經孵化完成了！');
+                return;
+            }
+
+            console.log('🔧 GM: 強制集滿能量');
+            currentChild.energy = 3;
+            
+            if (isGuest) {
+                guestData.children[currentChildIndex] = currentChild;
+                updateHomePetDisplay();
+            } else {
+                const docRef = doc(db, "parents", currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                let children = docSnap.data().children;
+                children[currentChildIndex] = currentChild; 
+                await updateDoc(docRef, { children: children });
+                updateHomePetDisplay();
+            }
+        };
+
+        function initEggPreviews() {
+            ['fire', 'water', 'forest'].forEach(type => {
+                const img = document.getElementById(`egg-preview-${type}`);
+                if (img) {
+                    img.src = PET_ASSETS[type].egg;
+                    img.onerror = () => { img.src = ''; img.alt = '請放入圖片: ' + PET_ASSETS[type].egg; };
+                }
+            });
+        }
+        initEggPreviews();
+
+        document.getElementById('google-login-btn').onclick = () => {
+            isGuest = false;
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log("Logged in:", result.user.email);
+                })
+                .catch((error) => alert("登入失敗: " + error.message));
+        };
+
+        document.getElementById('guest-login-btn').onclick = () => {
+            isGuest = true;
+            currentUser = { uid: 'guest', email: 'guest@local' };
+            guestData = { children: [] };
+            loginStep1.style.display = 'none';
+            loadProfiles(); 
+        };
+
+        window.logout = () => {
+            if (isGuest) {
+                location.reload(); 
+            } else {
+                signOut(auth).then(() => {
+                    location.reload();
+                });
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                isGuest = false;
+                currentUser = user;
+                loginStep1.style.display = 'none';
+                await loadProfiles();
+            } else {
+                if (!isGuest) {
+                    loginOverlay.style.display = 'flex';
+                    loginStep1.style.display = 'block';
+                    homePage.style.display = 'none';
+                }
+            }
+        });
+
+        async function loadProfiles() {
+            if (isGuest) {
+                renderProfileList(guestData.children);
+                loginStep2.style.display = 'block';
+                return;
+            }
+
+            const docRef = doc(db, "parents", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                renderProfileList(data.children || []);
+            } else {
+                await setDoc(docRef, { email: currentUser.email, children: [] });
+                renderProfileList([]);
+            }
+            loginStep2.style.display = 'block';
+        }
+
+        function renderProfileList(children) {
+            const list = document.getElementById('profile-list');
+            list.innerHTML = '';
+            
+            children.forEach((child, index) => {
+                const div = document.createElement('div');
+                div.className = 'profile-item';
+                div.onclick = () => selectChild(child, index);
+                
+                let avatarSrc = '';
+                if (child.petStatus === 'egg') {
+                    avatarSrc = PET_ASSETS[child.petType].egg;
+                } else {
+                    avatarSrc = PET_ASSETS[child.petType].petIdle;
+                }
+
+                div.innerHTML = `
+                    <div class="profile-avatar">
+                        <img src="${avatarSrc}" class="pet-img" onerror="this.style.display='none';this.parentNode.innerText='❓'">
+                    </div>
+                    <div class="profile-name">${child.name}</div>
+                `;
+                list.appendChild(div);
+            });
+
+            const addBtn = document.createElement('div');
+            addBtn.className = 'profile-item add';
+            addBtn.onclick = showNewProfileForm;
+            addBtn.innerHTML = `
+                <div class="profile-avatar" style="display:flex;align-items:center;justify-content:center;">+</div>
+                <div class="profile-name">新成員</div>
+            `;
+            list.appendChild(addBtn);
+        }
+
+        window.showNewProfileForm = () => {
+            document.getElementById('new-profile-form').style.display = 'block';
+        };
+
+        window.cancelNewProfile = () => {
+            document.getElementById('new-profile-form').style.display = 'none';
+            document.getElementById('new-child-name').value = '';
+        };
+
+        let tempNewChildName = '';
+
+        window.saveNewProfile = () => {
+            const name = document.getElementById('new-child-name').value;
+            if(!name) return alert('請輸入名字');
+            tempNewChildName = name;
+            loginStep2.style.display = 'none';
+            loginStep3.style.display = 'flex';
+        };
+
+        window.selectEgg = async (type) => {
+            const newChild = {
+                name: tempNewChildName,
+                petType: type, 
+                petStatus: 'egg',
+                energy: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            if (isGuest) {
+                guestData.children.push(newChild);
+                await loadProfiles(); 
+                selectChild(guestData.children[guestData.children.length-1], guestData.children.length-1);
+            } else {
+                const docRef = doc(db, "parents", currentUser.uid);
+                await updateDoc(docRef, {
+                    children: arrayUnion(newChild)
+                });
+                await loadProfiles();
+                const docSnap = await getDoc(docRef);
+                const children = docSnap.data().children;
+                selectChild(children[children.length-1], children.length-1);
+            }
+        }
+
+        function selectChild(child, index) {
+            currentChild = child;
+            currentChildIndex = index;
+            loginOverlay.style.display = 'none';
+            homePage.style.display = 'flex';
+            updateHomePetDisplay();
+        }
+
+        function updateHomePetDisplay() {
+            document.getElementById('home-child-name').innerText = currentChild.name;
+            const avatarContainer = document.getElementById('home-pet-avatar');
+            avatarContainer.innerHTML = ''; 
+
+            let statusText = '孵化中...';
+            let percent = (currentChild.energy / 3) * 100;
+            if(percent > 100) percent = 100;
+
+            const img = document.createElement('img');
+            img.className = 'pet-img';
+            
+            img.onerror = function() {
+                this.style.display = 'none';
+                this.parentNode.innerHTML = '<span style="font-size:40px">🥚</span>';
+            };
+
+            if (currentChild.petStatus === 'hatched') {
+                statusText = '快樂成長中';
+                percent = 100; 
+                img.src = PET_ASSETS[currentChild.petType].petIdle;
+            } else {
+                img.src = PET_ASSETS[currentChild.petType].egg;
+                document.getElementById('energy-text').innerText = `${currentChild.energy}/3 (還差${3-currentChild.energy}點)`;
+                if(currentChild.energy >= 3) {
+                    showHatchAnimation();
+                }
+            }
+            avatarContainer.appendChild(img);
+
+            document.getElementById('home-pet-status').innerText = statusText;
+            document.getElementById('home-energy-bar').style.width = percent + '%';
+            if(currentChild.petStatus !== 'egg') {
+                document.getElementById('energy-text').innerText = `Lv.1 幼年期`;
+            }
+        }
+
+        window.addEnergyToPet = async () => {
+            if (!currentUser || currentChildIndex === -1) return;
+            currentChild.energy += 1;
+            
+            if (isGuest) {
+                guestData.children[currentChildIndex] = currentChild;
+                updateHomePetDisplay();
+            } else {
+                const docRef = doc(db, "parents", currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                let children = docSnap.data().children;
+                children[currentChildIndex] = currentChild; 
+                await updateDoc(docRef, { children: children });
+                updateHomePetDisplay();
+            }
+        }
+
+        function showHatchAnimation() {
+            const overlay = document.getElementById('hatch-overlay');
+            const eggContainer = document.getElementById('hatch-egg-display');
+            const text = document.getElementById('hatch-text');
+            
+            eggContainer.innerHTML = '';
+            const webpImg = document.createElement('img');
+            webpImg.style.width = '100%';
+            webpImg.style.height = '100%';
+            webpImg.style.objectFit = 'contain';
+            webpImg.src = PET_ASSETS[currentChild.petType].hatchAnimation;
+            
+            webpImg.onerror = () => { 
+                console.log('孵化 WebP 載入失敗，使用蛋圖片替代');
+                webpImg.src = PET_ASSETS[currentChild.petType].egg;
+            };
+            
+            eggContainer.appendChild(webpImg);
+            overlay.style.display = 'flex';
+            text.innerText = '孵化點數已滿！點擊開始孵化...';
+            
+            eggContainer.onclick = async () => {
+                text.innerText = '正在孵化中...✨';
+                eggContainer.onclick = null;
+                
+                const hatchDuration = 8000;
+                
+                setTimeout(async () => {
+                    currentChild.petStatus = 'hatched';
+
+                    if (isGuest) {
+                        guestData.children[currentChildIndex] = currentChild;
+                    } else {
+                        const docRef = doc(db, "parents", currentUser.uid);
+                        const docSnap = await getDoc(docRef);
+                        let children = docSnap.data().children;
+                        children[currentChildIndex] = currentChild;
+                        await updateDoc(docRef, { children: children });
+                    }
+
+                    eggContainer.innerHTML = '';
+                    const petImg = document.createElement('img');
+                    petImg.src = PET_ASSETS[currentChild.petType].petBorn;
+                    petImg.style.width = '100%';
+                    petImg.style.height = '100%';
+                    petImg.style.objectFit = 'contain';
+                    eggContainer.appendChild(petImg);
+                    
+                    text.innerText = '哇！你的夥伴誕生了！';
+                    
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        updateHomePetDisplay();
+                    }, 2500);
+                }, hatchDuration);
+            };
+        }
+    </script>
+
     <script>
         // ===== 模組切換 =====
         function showHome() {
@@ -846,6 +1453,11 @@
             } else if (module === 'math') {
                 initMathModule();
             }
+        }
+        
+        // 導航到時鐘練習頁面
+        function goToClock() {
+            window.location.href = 'clock.html';
         }
         
         // ===== 國字模組 =====
@@ -1606,6 +2218,11 @@
                     o.start(t); o.stop(t + 0.15);
                     t += 0.12;
                 });
+                
+                // 測驗通過時增加寵物能量
+                if (window.addEnergyToPet) {
+                    window.addEnergyToPet();
+                }
             } catch(e) {}
         }
     </script>
